@@ -18,58 +18,54 @@ the access the row level security rules allow. The key you must **never** put in
 the mobile app is the `service_role` / `sb_secret_…` one, which bypasses every
 rule.
 
-If Supabase's dashboard shows you a newer `sb_publishable_…` key instead, the
-`anon` key above still works and is the safer choice here, because it is the
-format this project's pinned client library was built against.
+---
+
+## Zero Login Architecture for Citizens
+
+Citizens do **not** need to create an account, log in, or provide credentials.
+When a citizen opens the mobile app, they immediately enter the app:
+- They can browse all civic issues reported across Jharkhand.
+- They can view their own previously submitted issues (using a local device ID or saved list).
+- They can capture a photo, let AI analyze it, and submit a new report directly.
 
 ---
 
 ## What the mobile app owns
 
-1. Signing citizens up and in.
-2. Uploading the photograph.
-3. Calling the AI and writing the structured result.
+1. Browsing reported problems feed directly using the `anon` key.
+2. Uploading citizen evidence photographs to the `problem-images` storage bucket.
+3. Calling the AI and inserting the structured report into the `problems` table.
 
 ## What the web portal owns
 
-Everything after that: review, the release decision, interest, and status
-changes. The mobile app should never need to write to `status`, `released_to`,
-or the `interests` table.
+Everything after that: review, the release decision, university/industry interest,
+and status progression. The mobile app should never need to write to `status`,
+`released_to`, or the `interests` table.
 
 ---
 
-## 1 · Citizen sign-up
+## 1 · Browsing problems (feed & exploration)
 
-Create the account with `role: 'citizen'` in the metadata. A database trigger
-turns that into a `profiles` row automatically — do not insert into `profiles`
-by hand.
+The mobile app can query all problems directly without signing in:
 
 ```js
-await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    data: { full_name: 'Citizen name', role: 'citizen' },
-  },
-})
+const { data, error } = await supabase
+  .from('problems')
+  .select('id, ticket_no, title, description, category, priority, department, status, image_url, address, latitude, longitude, created_at')
+  .order('created_at', { ascending: false })
 ```
 
-If `role` is left out it defaults to `citizen` anyway, so this is belt and
-braces.
-
-A citizen can read the reports they submitted and nothing else. They cannot see
-other citizens' reports, and they cannot see the portal.
-
 ---
 
-## 2 · Upload the photograph
+## 2 · Uploading the photograph
 
-The bucket `problem-images` already exists and is public-read.
+The bucket `problem-images` is public-read and allows anonymous public uploads.
 
 ```js
-const path = `${userId}/${Date.now()}.jpg`
+const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`
+const path = `citizen-uploads/${filename}`
 
-await supabase.storage
+const { error: uploadError } = await supabase.storage
   .from('problem-images')
   .upload(path, fileOrBlob, { contentType: 'image/jpeg' })
 
@@ -82,19 +78,23 @@ The web portal displays `image_url`.
 
 ---
 
-## 3 · Insert the problem
+## 3 · Submitting a new problem report
 
-One insert, after the AI has run.
+One insert, after the AI has processed the photo and location.
 
 ```js
+// Optional: generate a unique device ID once and store it in AsyncStorage / SharedPreferences
+// so the user can easily filter "My Reports" on their device:
+const deviceId = getOrGenerateDeviceId() // e.g. "device_abc123"
+
 const { data, error } = await supabase.from('problems').insert({
   // ---- from the AI ----
   title:        'Deep pothole on Ranchi–Khunti road near Namkum crossing',
   description:  'A pothole roughly one metre across…',   // 2–4 sentences
   category:     'Road Infrastructure',
   priority:     'high',            // low | medium | high | critical
-  department:   'Public Works',    // must match a government user's department
-  duplicate_of: null,              // or the id of the earlier report
+  department:   'Public Works',    // must match a government department
+  duplicate_of: null,              // or the id of an earlier matching report
 
   // ---- from the phone ----
   image_url:    imageUrl,
@@ -103,9 +103,9 @@ const { data, error } = await supabase.from('problems').insert({
   longitude:    85.3846,
   address:      'Namkum Crossing, Ranchi–Khunti Road, Ranchi',
 
-  // ---- who reported it ----
-  reporter_id:   userId,           // must equal the signed-in user's id
-  reporter_name: 'Citizen name',
+  // ---- reporter info (anonymous citizen) ----
+  reporter_id:   deviceId,         // optional: local device identifier
+  reporter_name: 'Citizen report',
 }).select().single()
 ```
 
@@ -114,12 +114,36 @@ const { data, error } = await supabase.from('problems').insert({
 `released_to` at `none`, and `ticket_no` is generated as `JU-26-0001`,
 `JU-26-0002`, and so on.
 
-`reporter_id` **must** be the signed-in user's own id, or the insert is
-rejected by the security rules.
-
 The moment this insert lands, the report appears on the dashboard of every
 government user in that `department`, and they each get a notification. Nothing
 else is needed from the mobile side.
+
+---
+
+## 4 · Reading a citizen's own reports ("My Reports")
+
+To show issues reported by the current device, simply query filtering by your
+local `deviceId` or save the returned `id` in local device storage:
+
+```js
+const { data, error } = await supabase
+  .from('problems')
+  .select('id, ticket_no, title, category, priority, status, image_url, created_at')
+  .eq('reporter_id', deviceId)
+  .order('created_at', { ascending: false })
+```
+
+The `status` values a citizen may see, and reasonable wording for them:
+
+| Value | Meaning / User Display |
+|---|---|
+| `submitted` | Sent to the department |
+| `under_review` | Being reviewed |
+| `government_handling` | The department is handling it |
+| `released` | Opened up for outside help |
+| `interest_expressed` | An organisation has offered to help |
+| `in_progress` | Work has started |
+| `resolved` | Resolved |
 
 ---
 
@@ -137,12 +161,12 @@ else is needed from the mobile side.
 | `image_path` | text | mobile | Storage path, kept for reference. |
 | `latitude` / `longitude` | float8 | mobile | Decimal degrees. |
 | `address` | text | mobile | Reverse-geocoded, or whatever the citizen typed. |
-| `reporter_id` | uuid | mobile | Must be `auth.uid()`. |
-| `reporter_name` | text | mobile | Display name. |
+| `reporter_id` | text | mobile | Optional device ID or client tracking string. |
+| `reporter_name` | text | mobile | Display name (default: "Citizen report"). |
 | `status` | enum | **portal** | Starts at `submitted`. |
 | `released_to` | enum | **portal** | Starts at `none`. |
 | `government_note` | text | **portal** | Note the department writes for partners. |
-| `ticket_no` | text | database | Auto-generated. |
+| `ticket_no` | text | database | Auto-generated (`JU-YY-XXXX`). |
 
 ---
 
@@ -162,65 +186,13 @@ Urban Development
 Environment & Forests
 ```
 
-Only `Public Works` has a government login in the demo seed. To add more, see
-the last section of `SUPABASE_SETUP.md`.
-
-If the AI cannot work out the department, `Public Works` is the safest fallback
-for the demo — better than `null`, which only a state-level account would see.
-
----
-
-## Reading a citizen's own reports
-
-For a "my reports" screen in the mobile app:
-
-```js
-const { data } = await supabase
-  .from('problems')
-  .select('id, ticket_no, title, category, priority, status, image_url, created_at')
-  .order('created_at', { ascending: false })
-```
-
-No `.eq('reporter_id', …)` is needed — the security rules already restrict a
-citizen to their own rows. Adding it does no harm.
-
-The `status` values a citizen may see, and reasonable wording for them:
-
-| Value | Say something like |
-|---|---|
-| `submitted` | Sent to the department |
-| `under_review` | Being reviewed |
-| `government_handling` | The department is handling it |
-| `released` | Opened up for outside help |
-| `interest_expressed` | An organisation has offered to help |
-| `in_progress` | Work has started |
-| `resolved` | Resolved |
+Only `Public Works` has a government login in the demo seed.
 
 ---
 
 ## What the mobile app must not do
 
-- Do not insert into `profiles` — the trigger handles it.
-- Do not write `status` or `released_to`. Those belong to the government, and
-  the security rules will reject the attempt.
+- Do not attempt to sign in or create auth users for citizens.
+- Do not write `status` or `released_to`. Those belong to the government.
 - Do not write to `interests` — that is universities and industries only.
 - Do not use the `service_role` key in the mobile app. Anon key only.
-
----
-
-## Testing the join between the two apps
-
-1. Submit a report from the mobile app.
-2. Sign into the web portal as `gov@jharudyam.test`.
-3. It should be at the top of the department queue within a second or two, with
-   the photograph, the map coordinates and the AI's category and priority.
-
-If it does not appear, check the `department` value on the row against the
-government profile's `department`:
-
-```sql
-select ticket_no, department, status from public.problems order by created_at desc limit 5;
-select full_name, department from public.profiles where role = 'government';
-```
-
-Nine times out of ten it is a spelling mismatch there.

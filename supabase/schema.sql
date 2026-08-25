@@ -21,9 +21,9 @@ create extension if not exists pgcrypto;
 --  1. Enums  (the fixed vocabularies used across the platform)
 -- ----------------------------------------------------------------------------
 
--- Who a user is. 'citizen' accounts are created by the mobile app.
+-- Portal roles. Citizens use the mobile app directly without authentication.
 do $$ begin
-  create type public.user_role as enum ('citizen', 'government', 'university', 'industry');
+  create type public.user_role as enum ('government', 'university', 'industry');
 exception when duplicate_object then null; end $$;
 
 -- The problem lifecycle. Only these seven states exist.
@@ -54,7 +54,7 @@ exception when duplicate_object then null; end $$;
 
 
 -- ----------------------------------------------------------------------------
---  2. profiles — one row per user, holds the role
+--  2. profiles — one row per portal user, holds the role
 -- ----------------------------------------------------------------------------
 --  department  : filled in for government users (e.g. 'Public Works')
 --                a government user sees only problems for their department.
@@ -65,22 +65,22 @@ exception when duplicate_object then null; end $$;
 create table if not exists public.profiles (
   id            uuid primary key references auth.users (id) on delete cascade,
   full_name     text not null default '',
-  role          public.user_role not null default 'citizen',
+  role          public.user_role not null default 'government',
   department    text,
   organization  text,
   phone         text,
   created_at    timestamptz not null default now()
 );
 
-comment on table public.profiles is 'Role and identity for every platform user.';
+comment on table public.profiles is 'Role and identity for portal users (government, university, industry).';
 
 
 -- ----------------------------------------------------------------------------
 --  3. problems — the citizen reports, after AI processing
 -- ----------------------------------------------------------------------------
 --  The mobile app writes: image_url, image_path, latitude, longitude, address,
---  reporter_id, plus the AI output (title, description, category, priority,
---  department, duplicate_of).
+--  reporter_id (optional device/anonymous ID), reporter_name, plus the AI output
+--  (title, description, category, priority, department, duplicate_of).
 --  The web portal reads those and writes: status, released_to, released_at,
 --  released_by, government_note.
 -- ----------------------------------------------------------------------------
@@ -107,8 +107,8 @@ create table if not exists public.problems (
   latitude         double precision,
   longitude        double precision,
 
-  -- ---- reporter ----
-  reporter_id      uuid references auth.users (id) on delete set null,
+  -- ---- reporter (anonymous / unauthenticated citizen) ----
+  reporter_id      text,
   reporter_name    text,
 
   -- ---- government decision ----
@@ -218,9 +218,7 @@ grant execute on function public.is_my_department(text) to authenticated;
 --  7. Triggers
 -- ----------------------------------------------------------------------------
 
--- 7a. New auth user -> create a profile row.
---     Role defaults to 'citizen'. The mobile app can pass role/full_name in
---     sign-up metadata; portal users get their role set by setup_users.sql.
+-- 7a. New auth user -> create a profile row for portal logins.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -232,7 +230,7 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
-    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'citizen'),
+    coalesce((new.raw_user_meta_data ->> 'role')::public.user_role, 'government'),
     new.raw_user_meta_data ->> 'department',
     new.raw_user_meta_data ->> 'organization'
   )
@@ -402,9 +400,7 @@ create trigger handle_interest_removed_trg
 -- ----------------------------------------------------------------------------
 --  8. Row Level Security
 -- ----------------------------------------------------------------------------
---  This is what actually enforces role separation. Even if someone edited the
---  website's JavaScript, the database would still refuse to hand over problems
---  that have not been released to them.
+--  This is what actually enforces role separation.
 -- ----------------------------------------------------------------------------
 
 alter table public.profiles      enable row level security;
@@ -431,18 +427,26 @@ create policy "update own profile" on public.profiles
   with check (id = auth.uid());
 
 -- ---- problems ----
--- The citizen who reported it (mobile app).
+
+-- Drop previous policies to ensure clean migration
 drop policy if exists "citizen reads own reports" on public.problems;
-create policy "citizen reads own reports" on public.problems
-  for select to authenticated
-  using (reporter_id = auth.uid());
-
 drop policy if exists "citizen creates report" on public.problems;
-create policy "citizen creates report" on public.problems
-  for insert to authenticated
-  with check (reporter_id = auth.uid());
+drop policy if exists "public reads problems" on public.problems;
+drop policy if exists "anyone creates report" on public.problems;
 
--- Government: only its own department's problems.
+-- Citizens (unauthenticated mobile app users) can browse and view all reported problems.
+create policy "public reads problems" on public.problems
+  for select
+  to anon
+  using (true);
+
+-- Anyone (including unauthenticated citizens uploading via mobile app) can submit reports.
+create policy "anyone creates report" on public.problems
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- Government: only its own department's problems (for authenticated portal users).
 drop policy if exists "government reads department problems" on public.problems;
 create policy "government reads department problems" on public.problems
   for select to authenticated
@@ -454,7 +458,7 @@ create policy "government updates department problems" on public.problems
   using (public.is_my_department(department))
   with check (public.is_my_department(department));
 
--- University: only problems released to universities.
+-- University: only problems released to universities (for authenticated portal users).
 drop policy if exists "university reads released problems" on public.problems;
 create policy "university reads released problems" on public.problems
   for select to authenticated
@@ -463,7 +467,7 @@ create policy "university reads released problems" on public.problems
     and released_to in ('university', 'both')
   );
 
--- Industry: only problems released to industry.
+-- Industry: only problems released to industry (for authenticated portal users).
 drop policy if exists "industry reads released problems" on public.problems;
 create policy "industry reads released problems" on public.problems
   for select to authenticated
@@ -540,16 +544,18 @@ insert into storage.buckets (id, name, public)
 values ('problem-images', 'problem-images', true)
 on conflict (id) do nothing;
 
--- Anyone can view a photo (the bucket is public — fine for a prototype).
+-- Anyone can view a photo (the bucket is public).
 drop policy if exists "public read problem images" on storage.objects;
 create policy "public read problem images" on storage.objects
   for select
   using (bucket_id = 'problem-images');
 
--- Any signed-in user (i.e. the mobile app's citizen) can upload.
+-- Anyone (including unauthenticated citizens on the mobile app) can upload photos.
 drop policy if exists "authenticated upload problem images" on storage.objects;
-create policy "authenticated upload problem images" on storage.objects
-  for insert to authenticated
+drop policy if exists "public upload problem images" on storage.objects;
+create policy "public upload problem images" on storage.objects
+  for insert
+  to anon, authenticated
   with check (bucket_id = 'problem-images');
 
 
