@@ -125,8 +125,9 @@ export default function Profile() {
             </dl>
 
             <p className="mt-4 text-xs text-mute">
-              Role, department and organisation are set by an administrator in Supabase — they are
-              not editable here, because they control what you can see.
+              Role, department and organisation were fixed when this account was registered. They
+              are not editable here, because they decide what you are allowed to see — changing them
+              needs an administrator in Supabase.
             </p>
           </Panel>
 

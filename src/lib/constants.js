@@ -93,6 +93,27 @@ export const ROLE = {
   },
 }
 
+/**
+ * The departments a citizen report can be routed to.
+ *
+ * This list is a contract between the two apps: the mobile app's AI picks
+ * `problems.department` from it, and a government account only sees reports
+ * whose department matches its own *exactly*. A typo on either side means a
+ * report that nobody ever sees — which is why registration offers this as a
+ * dropdown rather than a free text box. Keep it identical to the list in
+ * MOBILE_INTEGRATION.md.
+ */
+export const DEPARTMENTS = [
+  'Public Works',
+  'Water Supply & Sanitation',
+  'Electricity',
+  'Municipal Solid Waste',
+  'Health',
+  'Transport',
+  'Urban Development',
+  'Environment & Forests',
+]
+
 export const statusMeta = (key) => STATUS[key] ?? STATUS.submitted
 export const priorityMeta = (key) => PRIORITY[key] ?? PRIORITY.medium
 export const scopeMeta = (key) => RELEASE_SCOPE[key] ?? RELEASE_SCOPE.none

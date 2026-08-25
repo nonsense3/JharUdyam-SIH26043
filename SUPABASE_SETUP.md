@@ -60,17 +60,19 @@ see four tables: `profiles`, `problems`, `interests`, `notifications`.
 
 ## Step 4 · Turn off email confirmation
 
-By default Supabase emails a confirmation link to every new user. For a
-prototype you do not want that — you want to create logins and use them
-immediately.
+**Do not skip this one.** By default Supabase emails a confirmation link to every
+new user, and the account cannot sign in until that link is clicked. Your email
+addresses are fake `.test` ones, so that link would never arrive — and the
+**Register** page in the web app would create accounts nobody can use.
 
 1. Sidebar → **Authentication** → **Sign In / Providers** (in some versions it
    is under **Providers → Email**).
 2. Find **Confirm email** and switch it **off**.
 3. Click **Save**.
 
-If you cannot find that switch, skip it — Step 5 has a checkbox that does the
-same thing per user.
+> The **Auto Confirm User** checkbox in Step 5 only covers users *you* create by
+> hand in the dashboard. It does nothing for someone registering through the web
+> app, which is why this switch matters.
 
 ---
 
@@ -97,8 +99,10 @@ on stage.
 > can never be a real one, so nothing is ever sent anywhere. Supabase does not
 > care that they are not deliverable.
 
-At this point all three accounts exist, but they are all still **citizens** —
-they have no access to anything. That is the next step.
+At this point all three accounts exist, but none of them has been told *who* it
+is. A user created by hand in the dashboard carries no role information, so the
+database falls back to a government profile with no department — which happens to
+see every department at once. Step 6 gives each one its real role.
 
 ---
 
@@ -116,7 +120,7 @@ This time you *will* get rows back — three of them:
 | university@jharudyam.test | Dr. A. Sinha | university | | BIT Mesra |
 
 **If a row is missing:** that user was not created in Step 5.
-**If a role still says `citizen`:** the email in the SQL does not match exactly
+**If a role or department is wrong:** the email in the SQL does not match exactly
 what you typed in Step 5. Fix the email in the file and run it again.
 
 ---
@@ -240,6 +244,16 @@ ticked.
 Step 6 has not been run, or it was run before the user existed. Run
 `setup_users.sql` again.
 
+**Registering says "Account created — check your email".**
+Step 4 was skipped. Turn **Confirm email** off (Authentication → Sign In /
+Providers), then confirm the waiting account by hand: Authentication → Users →
+the three dots on that row → **Confirm email**. New registrations after that sign
+in immediately.
+
+**Registering says "An account already exists for this email".**
+That address is already in Authentication → Users. Either sign in with it, or
+delete the user there and register again.
+
 **The government dashboard is empty.**
 The government profile's `department` must match the problems' `department`.
 The default for both is `Public Works`. Check with:
@@ -282,17 +296,46 @@ Sidebar → **Database** → **Publications** → `supabase_realtime` should lis
 
 ## Adding more users later
 
-To add a second government department, create the user in Authentication →
-Users, then:
+The easiest way is the web app itself: open <http://localhost:5173/register> (or
+click *Register your department or organisation* on the sign-in page). Pick a
+role, fill in the form, and the account is created and signed in immediately.
+
+**How that reaches the database.** The Register page does not write to the
+`profiles` table. It passes the name, role, department and organisation to
+Supabase Auth as user metadata, and a database trigger called
+`handle_new_user()` reads that metadata and creates the matching `profiles` row
+in the same transaction. So the role you pick on the form *is* the role stored in
+Postgres, and every security rule in Step 3 applies to it from the first request.
+You can watch it happen: register someone, then in **Table Editor → profiles**
+the new row is already there.
+
+Registering as government asks you to choose a department from a fixed list
+rather than typing one. That is deliberate — `problems.department` has to match
+`profiles.department` character for character, and a typo produces an account
+that silently sees nothing.
+
+> **Worth knowing before you demo.** Anyone who can reach the Register page can
+> choose *Government* for themselves, and a signed-in user could also change
+> their own role directly. Both are fine for a prototype and were a deliberate
+> choice to keep the demo frictionless — the interesting security property here
+> is that **the database, not the interface, decides what each role can read**.
+> If a judge pushes on it, the honest answer is that production would gate
+> registration behind an invite or an approval queue, and the row level security
+> policies would not change at all.
+
+### Creating a user by hand instead
+
+If you would rather not use the form, create the user in Authentication → Users
+(ticking *Auto Confirm User*), then set the role yourself:
 
 ```sql
 update public.profiles
-set role = 'government', full_name = 'Name here', department = 'Water Supply'
+set role = 'government', full_name = 'Name here', department = 'Water Supply & Sanitation'
 where id = (select id from auth.users where email = 'water@jharudyam.test');
 ```
 
-That account will then see only `Water Supply` problems — which is a good thing
-to demonstrate if a judge asks how department isolation works.
+That account will then see only `Water Supply & Sanitation` problems — which is a
+good thing to demonstrate if a judge asks how department isolation works.
 
 For another university or industry:
 

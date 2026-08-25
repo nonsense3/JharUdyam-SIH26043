@@ -55,17 +55,9 @@ export function ProtectedRoute({ allow, children }) {
   if (!profile) {
     return (
       <Blocked title="This account has no profile yet" onSignOut={signOut}>
-        Ask your administrator to run <code className="font-mono text-xs">setup_users.sql</code> so
-        this login is given a role.
-      </Blocked>
-    )
-  }
-
-  if (role === 'citizen') {
-    return (
-      <Blocked title="Citizen accounts use the mobile app" onSignOut={signOut}>
-        This web portal is for government, university and industry representatives. Report problems
-        from the JharUdyam mobile app instead.
+        Accounts created through the register page get their profile automatically. This one was
+        made directly in Supabase, so it still needs a role —{' '}
+        <code className="font-mono text-xs">setup_users.sql</code> assigns one.
       </Blocked>
     )
   }
@@ -82,11 +74,10 @@ export function ProtectedRoute({ allow, children }) {
 /**
  * Sends a signed-in user to the dashboard that matches their role.
  *
- * This route is the single place that decides where a signed-in user belongs,
- * so it must never bounce back to /login — the login page redirects here when a
- * session exists, and the two would ping-pong forever. When there is no portal
- * dashboard to send someone to (a citizen account, or a login that has not been
- * given a role yet) this explains why and stops.
+ * This route is the single place that decides where a signed-in user belongs, so
+ * it must never bounce back to /login — the login page redirects here whenever a
+ * session exists, and the two would ping-pong forever. When there is no dashboard
+ * to send someone to, it says why and stops.
  */
 export function RoleRedirect() {
   const { session, profile, role, loading, profileError, signOut } = useAuth()
@@ -108,19 +99,21 @@ export function RoleRedirect() {
   if (!profile) {
     return (
       <Blocked title="This account has no profile yet" onSignOut={signOut}>
-        Ask your administrator to run <code className="font-mono text-xs">setup_users.sql</code> so
-        this login is given a role.
+        Accounts created through the register page get their profile automatically. This one was
+        made directly in Supabase, so it still needs a role —{' '}
+        <code className="font-mono text-xs">setup_users.sql</code> assigns one.
       </Blocked>
     )
   }
 
-  // Signed in, has a profile, but the role is not one of the three portal
-  // roles — in practice a citizen account, which belongs to the mobile app.
+  // Signed in with a profile, but its role is not one the portal has a dashboard
+  // for. The user_role enum holds exactly the three portal roles, so this is
+  // unreachable today — it exists so that adding a fourth role fails loudly here
+  // instead of dropping someone onto a blank screen.
   return (
-    <Blocked title="Citizen accounts use the mobile app" onSignOut={signOut}>
-      This web portal is for government, university and industry representatives. If this login
-      should have portal access, it still needs a role —{' '}
-      <code className="font-mono text-xs">setup_users.sql</code> assigns one.
+    <Blocked title="This account has no portal dashboard" onSignOut={signOut}>
+      The role on this login (<code className="font-mono text-xs">{String(role)}</code>) does not
+      match government, university or industry.
     </Blocked>
   )
 }

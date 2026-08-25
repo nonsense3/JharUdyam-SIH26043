@@ -5,6 +5,7 @@ import { ProtectedRoute, RoleRedirect } from './components/Gate'
 import AppLayout from './components/AppLayout'
 
 import Login from './pages/Login'
+import Register from './pages/Register'
 import SetupNeeded from './pages/SetupNeeded'
 import NotFound from './pages/NotFound'
 import Notifications from './pages/Notifications'
@@ -39,6 +40,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={<RoleRedirect />} />
 
         {/* ------------------------------- government ------------------------------- */}

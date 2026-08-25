@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, ErrorNote } from '../components/ui'
 import { IconLandmark, IconCap, IconFactory } from '../components/Icons'
@@ -109,6 +109,13 @@ export default function Login() {
           </h2>
           <p className="mt-1.5 text-sm text-ash">
             Your account decides which dashboard opens — government, university or industry.
+          </p>
+          <p className="mt-1 text-sm text-ash">
+            No account yet?{' '}
+            <Link to="/register" className="font-medium text-brand hover:underline">
+              Register your department or organisation
+            </Link>
+            .
           </p>
 
           <form onSubmit={onSubmit} className="mt-7 space-y-4">
