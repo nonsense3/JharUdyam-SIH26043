@@ -30,10 +30,9 @@ class ProblemRepository {
           .select()
           .eq('reporter_id', deviceId)
           .order('created_at', ascending: false);
-
       return (response as List).map((e) => ProblemModel.fromJson(e)).toList();
     } catch (e) {
-      throw Exception('Failed to fetch my reports: $e');
+      throw Exception('Failed to fetch your reports: $e');
     }
   }
 
@@ -44,7 +43,6 @@ class ProblemRepository {
           .select()
           .eq('id', id)
           .single();
-
       return ProblemModel.fromJson(response);
     } catch (e) {
       throw Exception('Failed to fetch problem: $e');
@@ -53,21 +51,21 @@ class ProblemRepository {
 
   Future<({String publicUrl, String path})> uploadImage(Uint8List imageBytes) async {
     try {
-      final String path = '$uploadPrefix/${DateTime.now().millisecondsSinceEpoch}_${const Uuid().v4().substring(0, 8)}.jpg';
-      
+      final fileName = '$uploadPrefix/${DateTime.now().millisecondsSinceEpoch}_${const Uuid().v4().substring(0, 8)}.jpg';
+
       await SupabaseService.client.storage
           .from(storageBucket)
           .uploadBinary(
-            path,
+            fileName,
             imageBytes,
             fileOptions: const FileOptions(contentType: 'image/jpeg'),
           );
 
-      final String publicUrl = SupabaseService.client.storage
+      final publicUrl = SupabaseService.client.storage
           .from(storageBucket)
-          .getPublicUrl(path);
+          .getPublicUrl(fileName);
 
-      return (publicUrl: publicUrl, path: path);
+      return (publicUrl: publicUrl, path: fileName);
     } catch (e) {
       throw Exception('Failed to upload image: $e');
     }
@@ -80,10 +78,27 @@ class ProblemRepository {
           .insert(problem.toInsertJson())
           .select()
           .single();
-
       return ProblemModel.fromJson(response);
     } catch (e) {
-      throw Exception('Failed to submit problem: $e');
+      throw Exception('Failed to submit report: $e');
+    }
+  }
+
+  /// Get list of categories that have at least 1 submitted problem
+  Future<List<String>> getActiveCategories() async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select('category');
+      final categories = (response as List)
+          .map((e) => e['category']?.toString() ?? '')
+          .where((c) => c.isNotEmpty)
+          .toSet()
+          .toList();
+      categories.sort();
+      return categories;
+    } catch (e) {
+      return [];
     }
   }
 }

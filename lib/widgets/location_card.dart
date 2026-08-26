@@ -16,49 +16,44 @@ class LocationCard extends StatelessWidget {
     required this.address,
   });
 
-  Future<void> _openInGoogleMaps() async {
-    final uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
-    );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final point = LatLng(latitude, longitude);
+    final hasLocation = latitude != 0.0 || longitude != 0.0;
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mini map
-          SizedBox(
-            height: 180,
-            width: double.infinity,
-            child: IgnorePointer(
+          if (hasLocation)
+            SizedBox(
+              height: 160,
               child: FlutterMap(
                 options: MapOptions(
-                  initialCenter: point,
-                  initialZoom: 15.0,
+                  initialCenter: LatLng(latitude, longitude),
+                  initialZoom: 15,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.none,
+                  ),
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.jharudyam.citizen',
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   ),
                   MarkerLayer(
                     markers: [
                       Marker(
-                        point: point,
-                        width: 40,
-                        height: 40,
+                        point: LatLng(latitude, longitude),
+                        width: 36,
+                        height: 36,
                         child: const Icon(
                           Icons.location_on,
-                          color: Color(0xFFA4243B),
+                          color: AppTheme.primaryColor,
                           size: 36,
                         ),
                       ),
@@ -67,58 +62,29 @@ class LocationCard extends StatelessWidget {
                 ],
               ),
             ),
-          ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(14),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: AppTheme.primaryColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        address,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    color: Colors.grey.shade600,
+                const Icon(Icons.location_on, color: AppTheme.primaryColor, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    address,
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
                   ),
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _openInGoogleMaps,
-                    icon: const Icon(Icons.map_outlined, size: 16),
-                    label: const Text('Open in Google Maps'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.primaryColor,
-                      side: const BorderSide(color: AppTheme.primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
+                if (hasLocation)
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new, size: 18, color: AppTheme.primaryColor),
+                    onPressed: () {
+                      final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+                      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                    },
+                    tooltip: 'Open in Maps',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
-                ),
               ],
             ),
           ),

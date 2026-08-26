@@ -8,6 +8,7 @@ class ProblemsProvider extends ChangeNotifier {
 
   List<ProblemModel> _allProblems = [];
   List<ProblemModel> _myReports = [];
+  List<String> _activeCategories = [];
   String? _selectedCategory;
   bool _isLoading = false;
   String? _error;
@@ -30,6 +31,7 @@ class ProblemsProvider extends ChangeNotifier {
     ).toList();
   }
 
+  List<String> get activeCategories => _activeCategories;
   String? get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -76,10 +78,20 @@ class ProblemsProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchActiveCategories() async {
+    try {
+      _activeCategories = await _repository.getActiveCategories();
+      notifyListeners();
+    } catch (e) {
+      // Non-fatal, keep existing categories
+    }
+  }
+
   Future<void> refreshAll() async {
     await Future.wait([
       fetchAllProblems(),
       fetchMyReports(),
+      fetchActiveCategories(),
     ]);
   }
 }

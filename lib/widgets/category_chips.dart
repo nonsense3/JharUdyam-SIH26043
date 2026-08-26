@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:jharudyam_citizen/constants/app_constants.dart';
 import 'package:jharudyam_citizen/constants/app_theme.dart';
 
 class CategoryChips extends StatelessWidget {
   final String? selectedCategory;
-  final ValueChanged<String?> onSelected;
+  final Function(String?) onSelected;
+  final List<String> categories;
 
   const CategoryChips({
     super.key,
-    this.selectedCategory,
+    required this.selectedCategory,
     required this.onSelected,
+    this.categories = const ['All'],
   });
 
   @override
@@ -19,34 +20,27 @@ class CategoryChips extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: categoryFilters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemCount: categories.length,
+        separatorBuilder: (_, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final category = categoryFilters[index];
-          final isSelected = (selectedCategory == null && category == 'All') ||
-              selectedCategory == category;
-
+          final cat = categories[index];
+          final isSelected = (cat == 'All' && selectedCategory == null) || cat == selectedCategory;
           return ChoiceChip(
-            label: Text(
-              category,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? Colors.white : AppTheme.primaryColor,
-              ),
-            ),
+            label: Text(cat),
             selected: isSelected,
-            onSelected: (_) => onSelected(category),
+            onSelected: (_) => onSelected(cat),
             selectedColor: AppTheme.primaryColor,
-            backgroundColor: AppTheme.primaryTint,
+            backgroundColor: Colors.white,
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : AppTheme.primaryColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(
-                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-              ),
+              side: BorderSide(color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300),
             ),
             showCheckmark: false,
-            padding: const EdgeInsets.symmetric(horizontal: 4),
           );
         },
       ),

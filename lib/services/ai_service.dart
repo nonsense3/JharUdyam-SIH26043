@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:jharudyam_citizen/constants/app_constants.dart';
@@ -120,7 +119,7 @@ Required JSON Schema:
           department = 'Public Works';
         }
 
-        String priority = jsonResponse['priority']?.toString()?.toLowerCase() ?? 'medium';
+        String priority = jsonResponse['priority']?.toString().toLowerCase() ?? 'medium';
         if (!priorities.contains(priority)) {
           priority = 'medium';
         }

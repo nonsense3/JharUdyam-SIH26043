@@ -7,7 +7,7 @@ class AppTheme {
   static const Color primaryTint = Color(0xFFE7F1EF);
   
   // Backgrounds
-  static const Color backgroundCanvas = Color(0xFFF8FAFC);
+  static const Color backgroundCanvas = Color(0xFFF5F9F7);
   static const Color surfaceCard = Color(0xFFFFFFFF);
 
   // Priority Colors
@@ -26,35 +26,46 @@ class AppTheme {
 
   static Color priorityColor(String priority) {
     switch (priority.toLowerCase()) {
-      case 'critical':
-        return priorityCritical;
-      case 'high':
-        return priorityHigh;
-      case 'medium':
-        return priorityMedium;
-      case 'low':
-      default:
-        return priorityLow;
+      case 'critical': return priorityCritical;
+      case 'high': return priorityHigh;
+      case 'medium': return priorityMedium;
+      case 'low': default: return priorityLow;
     }
   }
 
   static Color statusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'submitted':
-        return statusSubmitted;
-      case 'under_review':
-        return statusUnderReview;
-      case 'government_handling':
-        return statusGovHandling;
-      case 'released':
-        return statusReleased;
-      case 'interest_expressed':
-      case 'in_progress':
-        return statusInProgress;
-      case 'resolved':
-        return statusResolved;
+      case 'submitted': return statusSubmitted;
+      case 'under_review': return statusUnderReview;
+      case 'government_handling': return statusGovHandling;
+      case 'released': return statusReleased;
+      case 'interest_expressed': case 'in_progress': return statusInProgress;
+      case 'resolved': return statusResolved;
+      default: return statusSubmitted;
+    }
+  }
+
+  /// For status badge pill foreground
+  static Color statusBadgeColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'resolved': case 'government_handling': case 'in_progress': case 'released': case 'interest_expressed':
+        return const Color(0xFF15544A);
+      case 'under_review': case 'submitted':
+        return const Color(0xFF48566A);
       default:
-        return statusSubmitted;
+        return const Color(0xFF48566A);
+    }
+  }
+
+  /// For status badge pill background
+  static Color statusBadgeBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'resolved': case 'government_handling': case 'in_progress': case 'released': case 'interest_expressed':
+        return const Color(0xFFE7F1EF);
+      case 'under_review': case 'submitted':
+        return const Color(0xFFEEF0F2);
+      default:
+        return const Color(0xFFEEF0F2);
     }
   }
 
@@ -68,10 +79,17 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: backgroundCanvas,
       appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Color(0xFF1D6E5F),
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: Color(0xFF1D6E5F),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+        iconTheme: IconThemeData(color: Color(0xFF1D6E5F)),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
@@ -79,35 +97,45 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: surfaceCard,
-        elevation: 2,
+        elevation: 0.5,
+        shadowColor: Colors.black12,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceCard,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: primaryColor, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: primaryTint,
         labelStyle: const TextStyle(color: primaryColor),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: Colors.transparent),
         ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Color(0xFF9CA3AF),
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
       ),
     );
   }

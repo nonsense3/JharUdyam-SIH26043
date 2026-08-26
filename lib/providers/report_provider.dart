@@ -23,6 +23,7 @@ class ReportProvider extends ChangeNotifier {
   Position? _location;
   String? _address;
   AiAnalysisResult? _aiResult;
+  int _analyzingStep = 0; // 0: image received, 1: looking for issues, 2: identifying problem, 3: preparing report, 4: done
   String? _error;
   bool _isFetchingLocation = false;
   ProblemModel? _submittedProblem;
@@ -36,6 +37,7 @@ class ReportProvider extends ChangeNotifier {
 
   // Getters
   ReportStep get currentStep => _currentStep;
+  int get analyzingStep => _analyzingStep;
   File? get selectedImage => _selectedImage;
   Uint8List? get compressedBytes => _compressedBytes;
   Position? get location => _location;
@@ -72,10 +74,16 @@ class ReportProvider extends ChangeNotifier {
   Future<void> _processImage(File file) async {
     _selectedImage = file;
     _error = null;
+    _analyzingStep = 0; // Step 0: Image received
     _currentStep = ReportStep.analyzing;
     notifyListeners();
 
     try {
+      // Step 0 -> Step 1
+      await Future.delayed(const Duration(milliseconds: 600));
+      _analyzingStep = 1; // Step 1: Looking for visible issues (Compressing & GPS)
+      notifyListeners();
+
       // Compress image & fetch location in parallel
       final compressFuture = _imageService.compressImage(file);
       final locationFuture = _fetchLocation();
@@ -83,8 +91,15 @@ class ReportProvider extends ChangeNotifier {
       _compressedBytes = await compressFuture;
       await locationFuture;
 
+      await Future.delayed(const Duration(milliseconds: 500));
+      _analyzingStep = 2; // Step 2: Identifying the problem (Gemini AI analysis)
+      notifyListeners();
+
       // Run AI analysis
       _aiResult = await _aiService.analyzeImage(_compressedBytes!);
+
+      _analyzingStep = 3; // Step 3: Preparing your report
+      notifyListeners();
 
       // Populate editable fields from AI result
       _title = _aiResult!.title;
@@ -93,6 +108,11 @@ class ReportProvider extends ChangeNotifier {
       _priority = _aiResult!.priority;
       _department = _aiResult!.department;
 
+      await Future.delayed(const Duration(milliseconds: 600));
+      _analyzingStep = 4; // All steps finished
+      notifyListeners();
+
+      await Future.delayed(const Duration(milliseconds: 400));
       _currentStep = ReportStep.review;
     } catch (e) {
       _error = e.toString();
@@ -103,6 +123,9 @@ class ReportProvider extends ChangeNotifier {
       _category = fallback.category;
       _priority = fallback.priority;
       _department = fallback.department;
+      _analyzingStep = 4;
+      notifyListeners();
+      await Future.delayed(const Duration(milliseconds: 400));
       _currentStep = ReportStep.review;
     }
     notifyListeners();
@@ -185,6 +208,7 @@ class ReportProvider extends ChangeNotifier {
     _location = null;
     _address = null;
     _aiResult = null;
+    _analyzingStep = 0;
     _error = null;
     _isFetchingLocation = false;
     _submittedProblem = null;
