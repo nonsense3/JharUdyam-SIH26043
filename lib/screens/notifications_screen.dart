@@ -6,6 +6,42 @@ import 'package:jharudyam_citizen/providers/notification_provider.dart';
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
+  void _showClearAllDialog(BuildContext context, NotificationProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear All Updates?', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text('This will remove all notification records from your device.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              provider.clearAll();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('All updates cleared'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Clear All'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,10 +53,22 @@ class NotificationsScreen extends StatelessWidget {
         actions: [
           Consumer<NotificationProvider>(
             builder: (context, provider, _) {
-              if (provider.unreadCount == 0) return const SizedBox.shrink();
-              return TextButton(
-                onPressed: () => provider.markAllRead(),
-                child: const Text('Mark all read', style: TextStyle(color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.w600)),
+              if (provider.notifications.isEmpty) return const SizedBox.shrink();
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (provider.unreadCount > 0)
+                    TextButton(
+                      onPressed: () => provider.markAllRead(),
+                      child: const Text('Mark read', style: TextStyle(color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_sweep_outlined, color: Color(0xFFDC2626), size: 22),
+                    tooltip: 'Clear All',
+                    onPressed: () => _showClearAllDialog(context, provider),
+                  ),
+                  const SizedBox(width: 4),
+                ],
               );
             },
           ),
@@ -64,7 +112,15 @@ class NotificationsScreen extends StatelessWidget {
                   border: Border.all(color: notif.isRead ? Colors.grey.shade200 : AppTheme.primaryColor.withValues(alpha: 0.2)),
                 ),
                 child: InkWell(
-                  onTap: () => provider.markRead(notif.id),
+                  onTap: () {
+                    provider.markRead(notif.id);
+                    if (notif.problemId != null || notif.ticketNo != null) {
+                      provider.navigateToProblem(
+                        problemId: notif.problemId,
+                        ticketNo: notif.ticketNo,
+                      );
+                    }
+                  },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -96,6 +152,10 @@ class NotificationsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+                      if (notif.problemId != null || notif.ticketNo != null) ...[
+                        const SizedBox(width: 8),
+                        Icon(Icons.chevron_right_rounded, size: 20, color: Colors.grey.shade400),
+                      ],
                     ],
                   ),
                 ),
@@ -107,3 +167,4 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 }
+

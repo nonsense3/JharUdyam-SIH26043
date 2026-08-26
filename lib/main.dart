@@ -9,7 +9,9 @@ import 'package:jharudyam_citizen/providers/problems_provider.dart';
 import 'package:jharudyam_citizen/providers/report_provider.dart';
 import 'package:jharudyam_citizen/providers/notification_provider.dart';
 import 'package:jharudyam_citizen/services/device_service.dart';
-import 'package:jharudyam_citizen/screens/main_shell.dart';
+import 'package:jharudyam_citizen/screens/splash_screen.dart';
+
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -20,27 +22,28 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  try {
-    await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    debugPrint('[Firebase] Initialized successfully');
-  } catch (e) {
-    debugPrint('[Firebase] Initialization error: $e');
-  }
+  NotificationProvider.globalNavigatorKey = appNavigatorKey;
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: supabaseUrl,
-    publishableKey: supabaseAnonKey,
-  );
+  // Initialize Firebase & Supabase in parallel for fast bootup
+  await Future.wait([
+    (() async {
+      try {
+        await Firebase.initializeApp();
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      } catch (e) {
+        debugPrint('[Firebase] Init error: $e');
+      }
+    })(),
+    Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: supabaseAnonKey,
+    ),
+    DeviceService.getDeviceId(),
+  ]);
 
-  // Pre-generate device ID on first launch
-  await DeviceService.getDeviceId();
-
-  // Initialize notification provider
+  // Initialize notification provider (non-blocking)
   final notificationProvider = NotificationProvider();
-  await notificationProvider.initialize();
+  notificationProvider.initialize();
 
   runApp(JharUdyamApp(notificationProvider: notificationProvider));
 }
@@ -63,9 +66,10 @@ class JharUdyamApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'JharUdyam',
+        navigatorKey: appNavigatorKey,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const MainShell(),
+        home: const SplashScreen(),
       ),
     );
   }

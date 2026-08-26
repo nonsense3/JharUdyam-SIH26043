@@ -49,6 +49,20 @@ class ProblemRepository {
     }
   }
 
+  Future<ProblemModel?> getProblemByTicketNo(String ticketNo) async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select()
+          .eq('ticket_no', ticketNo)
+          .maybeSingle();
+      if (response == null) return null;
+      return ProblemModel.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<({String publicUrl, String path})> uploadImage(Uint8List imageBytes) async {
     try {
       final fileName = '$uploadPrefix/${DateTime.now().millisecondsSinceEpoch}_${const Uuid().v4().substring(0, 8)}.jpg';

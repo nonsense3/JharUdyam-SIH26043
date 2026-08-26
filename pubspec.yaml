@@ -53,9 +53,11 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "officiallogo.jpeg"
+  image_path: "officiallogo_padded.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "officiallogo.jpeg"
+  adaptive_icon_foreground: "officiallogo_padded.png"
 
 flutter:
   uses-material-design: true
+  assets:
+    - officiallogo.jpeg

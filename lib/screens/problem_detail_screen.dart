@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jharudyam_citizen/constants/app_theme.dart';
 import 'package:jharudyam_citizen/models/problem_model.dart';
@@ -199,18 +200,18 @@ class ProblemDetailScreen extends StatelessWidget {
             // Report Details
             const Text('Report Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87)),
             const SizedBox(height: 16),
-            _detailRow(Icons.text_fields, 'Problem Title', problem.title),
-            _detailRow(Icons.category_outlined, 'Category', problem.category),
-            _detailRow(Icons.location_on_outlined, 'Location', problem.address),
-            _detailRow(Icons.calendar_today_outlined, 'Submitted Date', formattedDate),
+            _detailRow(context, Icons.text_fields, 'Problem Title', problem.title),
+            _detailRow(context, Icons.category_outlined, 'Category', problem.category),
+            _detailRow(context, Icons.location_on_outlined, 'Location', problem.address),
+            _detailRow(context, Icons.calendar_today_outlined, 'Submitted Date', formattedDate),
             if (problem.rejectionReason != null && problem.rejectionReason!.trim().isNotEmpty)
-              _detailRow(Icons.cancel_outlined, 'Rejection Reason', problem.rejectionReason!, isAlert: true),
+              _detailRow(context, Icons.cancel_outlined, 'Rejection Reason', problem.rejectionReason!, isAlert: true),
             if (problem.rejectedAt != null)
-              _detailRow(Icons.event_busy_outlined, 'Rejected Date', DateFormat('MMM dd, yyyy · hh:mm a').format(problem.rejectedAt!.toLocal())),
+              _detailRow(context, Icons.event_busy_outlined, 'Rejected Date', DateFormat('MMM dd, yyyy · hh:mm a').format(problem.rejectedAt!.toLocal())),
             if (problem.resolvedAt != null)
-              _detailRow(Icons.check_circle_outline, 'Resolved Date', DateFormat('MMM dd, yyyy · hh:mm a').format(problem.resolvedAt!.toLocal())),
-            _detailRow(Icons.account_balance_outlined, 'Department', problem.department),
-            _detailRow(Icons.flag_outlined, 'Priority', problem.priority[0].toUpperCase() + problem.priority.substring(1)),
+              _detailRow(context, Icons.check_circle_outline, 'Resolved Date', DateFormat('MMM dd, yyyy · hh:mm a').format(problem.resolvedAt!.toLocal())),
+            _detailRow(context, Icons.account_balance_outlined, 'Department', problem.department),
+            _detailRow(context, Icons.flag_outlined, 'Priority', problem.priority[0].toUpperCase() + problem.priority.substring(1)),
             const SizedBox(height: 20),
 
             // Description
@@ -376,34 +377,176 @@ class ProblemDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(IconData icon, String label, String value, {bool isAlert = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isAlert ? const Color(0xFFFEF2F2) : Colors.grey.shade50,
+  Widget _detailRow(BuildContext context, IconData icon, String label, String value, {bool isAlert = false}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showDetailModal(context, label, value, icon, isAlert: isAlert),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isAlert ? const Color(0xFFFECACA) : Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: isAlert ? const Color(0xFFDC2626) : AppTheme.primaryColor),
-          const SizedBox(width: 10),
-          Text(label, style: TextStyle(fontSize: 11, color: isAlert ? const Color(0xFF991B1B) : Colors.grey.shade500, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isAlert ? const Color(0xFF991B1B) : Colors.black87,
-              ),
-              textAlign: TextAlign.right,
-              overflow: TextOverflow.ellipsis,
-            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: isAlert ? const Color(0xFFFEF2F2) : Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: isAlert ? const Color(0xFFFECACA) : Colors.grey.shade200),
           ),
-        ],
+          child: Row(
+            children: [
+              Icon(icon, size: 16, color: isAlert ? const Color(0xFFDC2626) : AppTheme.primaryColor),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isAlert ? const Color(0xFF991B1B) : Colors.grey.shade500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Spacer(),
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isAlert ? const Color(0xFF991B1B) : Colors.black87,
+                  ),
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.info_outline_rounded,
+                size: 15,
+                color: isAlert ? const Color(0xFFDC2626).withValues(alpha: 0.7) : Colors.grey.shade400,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDetailModal(BuildContext context, String label, String value, IconData icon, {bool isAlert = false}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isAlert ? const Color(0xFFFEE2E2) : AppTheme.primaryTint,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 20,
+                      color: isAlert ? const Color(0xFFDC2626) : AppTheme.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          'Full detail view',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20, color: Colors.grey),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isAlert ? const Color(0xFFFEF2F2) : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isAlert ? const Color(0xFFFECACA) : Colors.grey.shade200,
+                  ),
+                ),
+                child: SelectableText(
+                  value,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                    color: isAlert ? const Color(0xFF991B1B) : Colors.black87,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: value));
+                        Navigator.of(ctx).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$label copied to clipboard!'),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      label: const Text('Copy to Clipboard', style: TextStyle(fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
