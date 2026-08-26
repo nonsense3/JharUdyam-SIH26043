@@ -316,10 +316,20 @@ export default function GovProblemDetail() {
                   <DataRow label="Decided on" mono>
                     {problem.released_at ? formatDateTime(problem.released_at) : formatDateTime(problem.updated_at)}
                   </DataRow>
+                  {problem.resolved_at ? (
+                    <DataRow label="Resolved on" mono>
+                      {formatDateTime(problem.resolved_at)}
+                    </DataRow>
+                  ) : null}
                   {problem.government_note ? (
                     <DataRow label="Note for partners">{problem.government_note}</DataRow>
                   ) : null}
                 </dl>
+                {problem.status === 'resolved' ? (
+                  <p className="mt-3 rounded-md border border-line bg-paper px-3 py-2 text-xs text-ash">
+                    Resolved reports are automatically archived and removed after 24 hours.
+                  </p>
+                ) : null}
 
                 <ErrorNote>{saveError}</ErrorNote>
 

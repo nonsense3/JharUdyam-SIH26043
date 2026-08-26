@@ -115,6 +115,7 @@ create table if not exists public.problems (
   status           public.problem_status not null default 'submitted',
   released_to      public.release_scope not null default 'none',
   released_at      timestamptz,
+  resolved_at      timestamptz,
   released_by      uuid references auth.users (id) on delete set null,
   government_note  text,
 
@@ -245,7 +246,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 
--- 7b. Ticket number + updated_at
+-- 7b. Ticket number + updated_at + resolved_at
 create or replace function public.problems_before_write()
 returns trigger
 language plpgsql
@@ -255,6 +256,14 @@ begin
     new.ticket_no := 'JU-' || to_char(now(), 'YY') || '-' ||
                      lpad(nextval('public.problem_ticket_seq')::text, 4, '0');
   end if;
+
+  -- If moving to resolved state, stamp resolved_at with exact current UTC timestamp
+  if new.status = 'resolved' and (old is null or old.status is distinct from 'resolved') then
+    new.resolved_at := now();
+  elsif new.status <> 'resolved' then
+    new.resolved_at := null;
+  end if;
+
   new.updated_at := now();
   return new;
 end;
@@ -575,6 +584,49 @@ begin
   alter publication supabase_realtime add table public.notifications;
 exception when others then
   raise notice 'notifications already in the realtime publication (fine)';
+end $$;
+
+
+-- ----------------------------------------------------------------------------
+-- 11. Automated 24-Hour Cleanup for Resolved Problems
+-- ----------------------------------------------------------------------------
+create or replace function public.delete_expired_resolved_problems()
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  deleted_count int;
+begin
+  delete from public.problems
+  where status = 'resolved'
+    and resolved_at is not null
+    and resolved_at < (now() - interval '24 hours');
+
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
+$$;
+
+-- Schedule cron cleanup every 10 minutes if pg_cron extension is available
+do $$
+begin
+  create extension if not exists pg_cron with schema extensions;
+  perform cron.unschedule('cleanup-resolved-problems');
+exception when others then
+  null;
+end $$;
+
+do $$
+begin
+  perform cron.schedule(
+    'cleanup-resolved-problems',
+    '*/10 * * * *',
+    'select public.delete_expired_resolved_problems();'
+  );
+exception when others then
+  raise notice 'pg_cron schedule skipped (handled by database function)';
 end $$;
 
 

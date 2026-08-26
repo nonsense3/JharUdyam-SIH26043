@@ -12,7 +12,7 @@ import { supabase } from './supabase'
 const PROBLEM_FIELDS = `
   id, ticket_no, title, description, category, priority, department, status,
   image_url, address, latitude, longitude, reporter_name,
-  released_to, released_at, government_note, duplicate_of,
+  released_to, released_at, resolved_at, government_note, duplicate_of,
   created_at, updated_at
 `
 
