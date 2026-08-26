@@ -23,6 +23,7 @@ class AppTheme {
   static const Color statusReleased = Color(0xFF4B3F9E);
   static const Color statusInProgress = Color(0xFF4B3F9E);
   static const Color statusResolved = Color(0xFF15544A);
+  static const Color statusRejected = Color(0xFFA4243B);
 
   static Color priorityColor(String priority) {
     switch (priority.toLowerCase()) {
@@ -41,6 +42,7 @@ class AppTheme {
       case 'released': return statusReleased;
       case 'interest_expressed': case 'in_progress': return statusInProgress;
       case 'resolved': return statusResolved;
+      case 'rejected': return statusRejected;
       default: return statusSubmitted;
     }
   }
@@ -50,6 +52,8 @@ class AppTheme {
     switch (status.toLowerCase()) {
       case 'resolved': case 'government_handling': case 'in_progress': case 'released': case 'interest_expressed':
         return const Color(0xFF15544A);
+      case 'rejected':
+        return const Color(0xFFA4243B);
       case 'under_review': case 'submitted':
         return const Color(0xFF48566A);
       default:
@@ -62,6 +66,8 @@ class AppTheme {
     switch (status.toLowerCase()) {
       case 'resolved': case 'government_handling': case 'in_progress': case 'released': case 'interest_expressed':
         return const Color(0xFFE7F1EF);
+      case 'rejected':
+        return const Color(0xFFFEE2E2);
       case 'under_review': case 'submitted':
         return const Color(0xFFEEF0F2);
       default:

@@ -36,6 +36,7 @@ const List<String> statuses = [
   'interest_expressed',
   'in_progress',
   'resolved',
+  'rejected',
 ];
 
 // Category filter options for the UI

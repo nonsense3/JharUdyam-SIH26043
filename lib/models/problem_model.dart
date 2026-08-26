@@ -16,6 +16,9 @@ class ProblemModel {
   final String reporterName;
   final String status;
   final String? releasedTo;
+  final String? rejectionReason;
+  final DateTime? rejectedAt;
+  final DateTime? resolvedAt;
   final DateTime? createdAt;
 
   ProblemModel({
@@ -36,6 +39,9 @@ class ProblemModel {
     this.reporterName = 'Citizen report · mobile app',
     this.status = 'submitted',
     this.releasedTo,
+    this.rejectionReason,
+    this.rejectedAt,
+    this.resolvedAt,
     this.createdAt,
   });
 
@@ -58,6 +64,9 @@ class ProblemModel {
       reporterName: json['reporter_name'] ?? 'Citizen report · mobile app',
       status: json['status'] ?? 'submitted',
       releasedTo: json['released_to']?.toString(),
+      rejectionReason: json['rejection_reason']?.toString(),
+      rejectedAt: json['rejected_at'] != null ? DateTime.tryParse(json['rejected_at'])?.toLocal() : null,
+      resolvedAt: json['resolved_at'] != null ? DateTime.tryParse(json['resolved_at'])?.toLocal() : null,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'])?.toLocal() : null,
     );
   }

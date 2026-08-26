@@ -13,6 +13,7 @@ class StatusIndicator extends StatelessWidget {
       case 'in_progress': return 'In Progress';
       case 'resolved': return 'Resolved';
       case 'released': return 'Released';
+      case 'rejected': return 'Rejected';
       default: return status.replaceAll('_', ' ');
     }
   }

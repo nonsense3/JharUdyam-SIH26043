@@ -15,6 +15,19 @@ class NotificationsScreen extends StatelessWidget {
         elevation: 0.5,
         automaticallyImplyLeading: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.volume_up_outlined, color: AppTheme.primaryColor),
+            tooltip: 'Test Sound',
+            onPressed: () {
+              context.read<NotificationProvider>().testNotification();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Test notification sent with system sound! Check your notification bar.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
           Consumer<NotificationProvider>(
             builder: (context, provider, _) {
               if (provider.unreadCount == 0) return const SizedBox.shrink();

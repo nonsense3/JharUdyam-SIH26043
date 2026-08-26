@@ -12,7 +12,7 @@ class ProblemCard extends StatelessWidget {
   int _stepFromStatus(String status) {
     switch (status.toLowerCase()) {
       case 'submitted': return 0;
-      case 'under_review': return 1;
+      case 'under_review': case 'rejected': return 1;
       case 'government_handling': case 'in_progress': case 'released': case 'interest_expressed': return 2;
       case 'resolved': return 3;
       default: return 0;
@@ -27,6 +27,7 @@ class ProblemCard extends StatelessWidget {
       case 'in_progress': return 'IN PROGRESS';
       case 'resolved': return 'RESOLVED';
       case 'released': return 'RELEASED';
+      case 'rejected': return 'REJECTED';
       default: return status.toUpperCase();
     }
   }
@@ -34,7 +35,9 @@ class ProblemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final step = _stepFromStatus(problem.status);
-    final labels = ['Submitted', 'Review', 'Action', 'Resolved'];
+    final isRejected = problem.status.toLowerCase() == 'rejected';
+    final activeColor = isRejected ? AppTheme.statusRejected : AppTheme.primaryColor;
+    final labels = ['Submitted', isRejected ? 'Rejected' : 'Review', 'Action', 'Resolved'];
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -98,7 +101,7 @@ class ProblemCard extends StatelessWidget {
                       height: 4,
                       margin: EdgeInsets.only(right: i < 3 ? 3 : 0),
                       decoration: BoxDecoration(
-                        color: i <= step ? AppTheme.primaryColor : Colors.grey.shade200,
+                        color: i <= step ? activeColor : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -116,7 +119,7 @@ class ProblemCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: i == step ? FontWeight.w700 : FontWeight.w400,
-                        color: i == step ? AppTheme.primaryColor : Colors.grey.shade400,
+                        color: i == step ? activeColor : Colors.grey.shade400,
                       ),
                     ),
                   );
