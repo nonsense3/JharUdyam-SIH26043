@@ -26,7 +26,7 @@ do $$ begin
   create type public.user_role as enum ('government', 'university', 'industry');
 exception when duplicate_object then null; end $$;
 
--- The problem lifecycle. Only these seven states exist.
+-- The problem lifecycle.
 do $$ begin
   create type public.problem_status as enum (
     'submitted',            -- citizen sent it, AI has filled in the details
@@ -35,7 +35,8 @@ do $$ begin
     'released',             -- department opened it up for collaboration
     'interest_expressed',   -- a university or industry has put its hand up
     'in_progress',          -- work has started
-    'resolved'              -- done
+    'resolved',             -- done (auto-deleted after 24 hours)
+    'rejected'              -- rejected with reason (auto-deleted after 1 hour)
   );
 exception when duplicate_object then null; end $$;
 
@@ -82,7 +83,7 @@ comment on table public.profiles is 'Role and identity for portal users (governm
 --  reporter_id (optional device/anonymous ID), reporter_name, plus the AI output
 --  (title, description, category, priority, department, duplicate_of).
 --  The web portal reads those and writes: status, released_to, released_at,
---  released_by, government_note.
+--  resolved_at, rejected_at, rejection_reason, rejected_by, released_by, government_note.
 -- ----------------------------------------------------------------------------
 create sequence if not exists public.problem_ticket_seq;
 
@@ -116,6 +117,9 @@ create table if not exists public.problems (
   released_to      public.release_scope not null default 'none',
   released_at      timestamptz,
   resolved_at      timestamptz,
+  rejected_at      timestamptz,
+  rejection_reason text,
+  rejected_by      uuid references auth.users (id) on delete set null,
   released_by      uuid references auth.users (id) on delete set null,
   government_note  text,
 
@@ -246,7 +250,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 
--- 7b. Ticket number + updated_at + resolved_at
+-- 7b. Ticket number + updated_at + resolved_at + rejected_at
 create or replace function public.problems_before_write()
 returns trigger
 language plpgsql
@@ -262,6 +266,13 @@ begin
     new.resolved_at := now();
   elsif new.status <> 'resolved' then
     new.resolved_at := null;
+  end if;
+
+  -- If moving to rejected state, stamp rejected_at with exact current UTC timestamp
+  if new.status = 'rejected' and (old is null or old.status is distinct from 'rejected') then
+    new.rejected_at := now();
+  elsif new.status <> 'rejected' then
+    new.rejected_at := null;
   end if;
 
   new.updated_at := now();
@@ -588,32 +599,42 @@ end $$;
 
 
 -- ----------------------------------------------------------------------------
--- 11. Automated 24-Hour Cleanup for Resolved Problems
+-- 11. Automated Cleanup (24h for Resolved, 1h for Rejected)
 -- ----------------------------------------------------------------------------
-create or replace function public.delete_expired_resolved_problems()
+create or replace function public.delete_expired_problems()
 returns int
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  deleted_count int;
+  resolved_deleted int := 0;
+  rejected_deleted int := 0;
 begin
+  -- 1. Delete resolved problems older than 24 hours
   delete from public.problems
   where status = 'resolved'
     and resolved_at is not null
     and resolved_at < (now() - interval '24 hours');
+  get diagnostics resolved_deleted = row_count;
 
-  get diagnostics deleted_count = row_count;
-  return deleted_count;
+  -- 2. Delete rejected problems older than 1 hour
+  delete from public.problems
+  where status = 'rejected'
+    and rejected_at is not null
+    and rejected_at < (now() - interval '1 hour');
+  get diagnostics rejected_deleted = row_count;
+
+  return resolved_deleted + rejected_deleted;
 end;
 $$;
 
--- Schedule cron cleanup every 10 minutes if pg_cron extension is available
+-- Schedule cron cleanup every 5 minutes if pg_cron extension is available
 do $$
 begin
   create extension if not exists pg_cron with schema extensions;
   perform cron.unschedule('cleanup-resolved-problems');
+  perform cron.unschedule('cleanup-expired-problems');
 exception when others then
   null;
 end $$;
@@ -621,9 +642,9 @@ end $$;
 do $$
 begin
   perform cron.schedule(
-    'cleanup-resolved-problems',
-    '*/10 * * * *',
-    'select public.delete_expired_resolved_problems();'
+    'cleanup-expired-problems',
+    '*/5 * * * *',
+    'select public.delete_expired_problems();'
   );
 exception when others then
   raise notice 'pg_cron schedule skipped (handled by database function)';

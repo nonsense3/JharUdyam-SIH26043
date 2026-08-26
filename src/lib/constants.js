@@ -53,6 +53,13 @@ export const STATUS = {
     dot: 'bg-brand',
     description: 'This problem has been dealt with.',
   },
+  rejected: {
+    label: 'Rejected',
+    short: 'Rejected',
+    className: 'border-crit/30 bg-crit/10 text-crit',
+    dot: 'bg-crit',
+    description: 'This report was rejected by the department.',
+  },
 }
 
 export const PRIORITY = {

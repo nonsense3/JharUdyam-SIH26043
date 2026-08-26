@@ -14,6 +14,7 @@ const GROUPS = [
   { key: 'released', label: 'Released', match: (s) => ['released', 'interest_expressed', 'in_progress'].includes(s) },
   { key: 'internal', label: 'In-house', match: (s) => s === 'government_handling' },
   { key: 'resolved', label: 'Resolved', match: (s) => s === 'resolved' },
+  { key: 'rejected', label: 'Rejected', match: (s) => s === 'rejected' },
   { key: 'all', label: 'Everything', match: () => true },
 ]
 

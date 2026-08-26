@@ -23,6 +23,12 @@ const INTERNAL_STEPS = [
   { key: 'resolved', label: 'Resolved', hint: '' },
 ]
 
+const REJECTED_STEPS = [
+  { key: 'reported', label: 'Reported', hint: 'Citizen' },
+  { key: 'review', label: 'Dept. review', hint: 'Government' },
+  { key: 'rejected', label: 'Rejected', hint: 'Department' },
+]
+
 const COLLAB_INDEX = {
   submitted: 0,
   under_review: 1,
@@ -39,9 +45,13 @@ const INTERNAL_INDEX = {
 }
 
 export default function CustodyTrack({ status, className = '' }) {
+  const isRejected = status === 'rejected'
   const internal = status === 'government_handling' || status === 'internal'
-  const steps = internal ? INTERNAL_STEPS : COLLAB_STEPS
-  const reached = internal
+  
+  const steps = isRejected ? REJECTED_STEPS : internal ? INTERNAL_STEPS : COLLAB_STEPS
+  const reached = isRejected
+    ? 2
+    : internal
     ? (INTERNAL_INDEX[status] ?? 2)
     : (COLLAB_INDEX[status] ?? 0)
 
@@ -61,7 +71,7 @@ export default function CustodyTrack({ status, className = '' }) {
                   className={[
                     'h-2.5 w-2.5 shrink-0 rotate-45 border transition-colors',
                     done && 'border-brand bg-brand',
-                    current && 'border-brand bg-surface ring-2 ring-brand/25',
+                    current && (isRejected ? 'border-crit bg-surface ring-2 ring-crit/30' : 'border-brand bg-surface ring-2 ring-brand/25'),
                     future && 'border-line bg-surface',
                   ]
                     .filter(Boolean)
@@ -70,7 +80,7 @@ export default function CustodyTrack({ status, className = '' }) {
                 {!isLast ? (
                   <span
                     className={`ml-1 h-px flex-1 origin-left animate-grow ${
-                      done ? 'bg-brand' : 'bg-line'
+                      done ? (isRejected && i === reached - 1 ? 'bg-crit' : 'bg-brand') : 'bg-line'
                     }`}
                   />
                 ) : null}
@@ -79,7 +89,7 @@ export default function CustodyTrack({ status, className = '' }) {
               <div className="pr-3">
                 <p
                   className={`font-mono text-2xs uppercase tracking-[0.1em] ${
-                    future ? 'text-mute' : 'text-ink'
+                    future ? 'text-mute' : isRejected && current ? 'text-crit font-semibold' : 'text-ink'
                   } ${current ? 'font-medium' : ''}`}
                 >
                   {step.label}

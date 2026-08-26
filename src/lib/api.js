@@ -12,8 +12,8 @@ import { supabase } from './supabase'
 const PROBLEM_FIELDS = `
   id, ticket_no, title, description, category, priority, department, status,
   image_url, address, latitude, longitude, reporter_name,
-  released_to, released_at, resolved_at, government_note, duplicate_of,
-  created_at, updated_at
+  released_to, released_at, resolved_at, rejected_at, rejection_reason, rejected_by,
+  government_note, duplicate_of, created_at, updated_at
 `
 
 /* ------------------------------------------------------------------ problems */
@@ -88,6 +88,25 @@ export async function decideProblem(id, decision, note, userId) {
   const { data, error } = await supabase
     .from('problems')
     .update(patch)
+    .eq('id', id)
+    .select(PROBLEM_FIELDS)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+/** Rejects a problem report with an official department reason. */
+export async function rejectProblem(id, reason, userId) {
+  const { data, error } = await supabase
+    .from('problems')
+    .update({
+      status: 'rejected',
+      rejection_reason: reason?.trim() || 'Report rejected by department as invalid or duplicate.',
+      rejected_at: new Date().toISOString(),
+      rejected_by: userId ?? null,
+      released_to: 'none',
+      released_at: null,
+    })
     .eq('id', id)
     .select(PROBLEM_FIELDS)
     .maybeSingle()

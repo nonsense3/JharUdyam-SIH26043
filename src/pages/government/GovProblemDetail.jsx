@@ -7,6 +7,7 @@ import {
   markUnderReview,
   decideProblem,
   setProblemStatus,
+  rejectProblem,
 } from '../../lib/api'
 import { useAsync } from '../../hooks/useAsync'
 import { formatDateTime, statusMeta, scopeMeta } from '../../lib/constants'
@@ -68,6 +69,14 @@ const DECISIONS = [
   },
 ]
 
+const REJECTION_PRESETS = [
+  'Not a public infrastructure issue',
+  'Duplicate of an existing active report',
+  'Insufficient / unclear photographic evidence',
+  'Outside department jurisdiction',
+  'Invalid or test submission',
+]
+
 const AWAITING = ['submitted', 'under_review']
 
 export default function GovProblemDetail() {
@@ -83,6 +92,8 @@ export default function GovProblemDetail() {
   const [choice, setChoice] = useState(null)
   const [note, setNote] = useState('')
   const [revising, setRevising] = useState(false)
+  const [rejecting, setRejecting] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
 
@@ -109,8 +120,38 @@ export default function GovProblemDetail() {
       problemQuery.setData(updated ?? { ...problem })
       setChoice(null)
       setRevising(false)
+      setRejecting(false)
     } catch (err) {
       setSaveError(err?.message ?? 'The decision could not be saved.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function submitRejection() {
+    if (!problem) return
+    const reason = rejectionReason.trim()
+    if (!reason) {
+      setSaveError('Please select or specify a reason for rejecting this report.')
+      return
+    }
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const updated = await rejectProblem(problem.id, reason, user?.id)
+      problemQuery.setData(
+        updated ?? {
+          ...problem,
+          status: 'rejected',
+          rejection_reason: reason,
+          rejected_at: new Date().toISOString(),
+        }
+      )
+      setRejecting(false)
+      setChoice(null)
+      setRevising(false)
+    } catch (err) {
+      setSaveError(err?.message ?? 'The report could not be rejected.')
     } finally {
       setSaving(false)
     }
@@ -226,12 +267,124 @@ export default function GovProblemDetail() {
         {/* ------------------------------ right: the decision ------------------------------ */}
         <div className="space-y-5 lg:sticky lg:top-6 lg:self-start">
           <Panel
-            title={showChoices ? 'Your decision' : 'Decision on record'}
+            title={
+              rejecting
+                ? 'Reject report'
+                : problem.status === 'rejected'
+                ? 'Report rejected'
+                : showChoices
+                ? 'Your decision'
+                : 'Decision on record'
+            }
             subtitle={
-              showChoices ? 'Choose one. This is what makes a problem visible to partners.' : undefined
+              rejecting
+                ? 'State the reason for rejecting this citizen submission.'
+                : problem.status === 'rejected'
+                ? undefined
+                : showChoices
+                ? 'Choose one. This is what makes a problem visible to partners.'
+                : undefined
             }
           >
-            {showChoices ? (
+            {rejecting ? (
+              <div className="space-y-3">
+                <p className="text-xs text-ash">
+                  Select or type the official reason. Rejected reports are kept for 1 hour before permanent deletion.
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {REJECTION_PRESETS.map((preset) => {
+                    const isSelected = rejectionReason === preset
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setRejectionReason(preset)}
+                        className={[
+                          'rounded border px-2.5 py-1 text-xs text-left transition-colors',
+                          isSelected
+                            ? 'border-crit bg-crit text-white font-medium'
+                            : 'border-line bg-surface text-ash hover:border-ash hover:text-ink',
+                        ].join(' ')}
+                      >
+                        {preset}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-2">
+                  <label htmlFor="rejection-custom" className="field-label">
+                    Rejection note
+                  </label>
+                  <textarea
+                    id="rejection-custom"
+                    rows={2}
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Enter or customize reason..."
+                    className="input resize-y text-xs"
+                  />
+                </div>
+
+                <ErrorNote>{saveError}</ErrorNote>
+
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={submitRejection}
+                    disabled={saving || !rejectionReason.trim()}
+                    className="btn bg-crit text-white hover:bg-crit/90 flex-1 btn-sm"
+                  >
+                    {saving ? <Spinner /> : null}
+                    {saving ? 'Rejecting' : 'Confirm rejection'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRejecting(false)
+                      setRejectionReason('')
+                      setSaveError(null)
+                    }}
+                    className="btn-outline btn-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : problem.status === 'rejected' ? (
+              <div className="space-y-4">
+                <div className="rounded-md border border-crit/30 bg-crit/5 p-4">
+                  <p className="text-2xs font-mono uppercase tracking-[0.1em] text-crit font-semibold">
+                    Rejection Reason
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-ink">
+                    {problem.rejection_reason || 'Report rejected by department.'}
+                  </p>
+                  <p className="mt-2 text-2xs text-mute font-mono">
+                    Rejected on {problem.rejected_at ? formatDateTime(problem.rejected_at) : formatDateTime(problem.updated_at)}
+                  </p>
+                </div>
+
+                <p className="rounded-md border border-line bg-paper px-3 py-2 text-xs text-ash leading-relaxed">
+                  ⚠️ This report is rejected and will be permanently deleted from the database 1 hour after rejection.
+                </p>
+
+                <ErrorNote>{saveError}</ErrorNote>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRevising(true)
+                    setChoice(null)
+                    setSaveError(null)
+                  }}
+                  className="btn-outline w-full text-xs"
+                >
+                  Reconsider / Change decision
+                </button>
+              </div>
+            ) : showChoices ? (
               <>
                 <div className="space-y-2">
                   {DECISIONS.map((d) => {
@@ -307,6 +460,19 @@ export default function GovProblemDetail() {
                     </button>
                   ) : null}
                 </div>
+
+                <div className="mt-3 border-t border-line pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRejecting(true)
+                      setSaveError(null)
+                    }}
+                    className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
+                  >
+                    Reject this report
+                  </button>
+                </div>
               </>
             ) : (
               <>
@@ -363,6 +529,16 @@ export default function GovProblemDetail() {
                     className="btn-ghost w-full"
                   >
                     Change the decision
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRejecting(true)
+                      setSaveError(null)
+                    }}
+                    className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
+                  >
+                    Reject report
                   </button>
                 </div>
               </>
