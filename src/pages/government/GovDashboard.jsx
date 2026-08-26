@@ -81,11 +81,28 @@ export default function GovDashboard() {
               value={awaiting.length}
               hint="New + under review"
               tone={awaiting.length ? 'text-crit' : 'text-ink'}
-              to={`${HOME}/problems`}
+              to={`${HOME}/problems?group=awaiting`}
             />
-            <StatCard label="Released" value={released.length} hint="Open for collaboration" tone="text-univ" />
-            <StatCard label="Handling in-house" value={internal.length} hint="Kept by the department" tone="text-brand-dark" />
-            <StatCard label="Resolved" value={resolved.length} hint="Closed out" />
+            <StatCard
+              label="Released"
+              value={released.length}
+              hint="Open for collaboration"
+              tone="text-univ"
+              to={`${HOME}/problems?group=released`}
+            />
+            <StatCard
+              label="Handling in-house"
+              value={internal.length}
+              hint="Kept by the department"
+              tone="text-brand-dark"
+              to={`${HOME}/problems?group=internal`}
+            />
+            <StatCard
+              label="Resolved"
+              value={resolved.length}
+              hint="Closed out"
+              to={`${HOME}/problems?group=resolved`}
+            />
           </div>
 
           <div className="mt-6">

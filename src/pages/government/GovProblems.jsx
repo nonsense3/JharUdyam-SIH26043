@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { listDepartmentProblems } from '../../lib/api'
 import { useAsync } from '../../hooks/useAsync'
 import { PRIORITY, priorityWeight } from '../../lib/constants'
@@ -17,10 +18,33 @@ const GROUPS = [
 ]
 
 export default function GovProblems() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const groupParam = searchParams.get('group')
+  const initialGroup = GROUPS.some((g) => g.key === groupParam) ? groupParam : 'awaiting'
+
   const { data, error, loading, reload } = useAsync(listDepartmentProblems, [])
-  const [group, setGroup] = useState('awaiting')
+  const [group, setGroup] = useState(initialGroup)
   const [priority, setPriority] = useState('all')
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    const g = searchParams.get('group')
+    if (g && GROUPS.some((x) => x.key === g)) {
+      setGroup(g)
+    }
+  }, [searchParams])
+
+  const selectGroup = (newGroup) => {
+    setGroup(newGroup)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('group', newGroup)
+        return next
+      },
+      { replace: true }
+    )
+  }
 
   const problems = data ?? []
 
@@ -75,7 +99,7 @@ export default function GovProblems() {
             <button
               key={g.key}
               type="button"
-              onClick={() => setGroup(g.key)}
+              onClick={() => selectGroup(g.key)}
               className={[
                 'inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
                 active
