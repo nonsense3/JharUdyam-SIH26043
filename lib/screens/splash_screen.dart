@@ -105,8 +105,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 130,
-                height: 130,
+                width: 142,
+                height: 142,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ),
                 child: ClipOval(
                   child: Image.asset(
-                    'officiallogo.jpeg',
+                    'officiallogo_padded.png',
                     fit: BoxFit.contain,
                   ),
                 ),
