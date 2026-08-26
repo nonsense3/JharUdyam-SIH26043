@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { Spinner, ErrorNote } from '../components/ui'
 import { DEPARTMENTS } from '../lib/constants'
 import { IconLandmark, IconCap, IconFactory, IconCheck } from '../components/Icons'
+import logoImg from '../assets/logo.jpeg'
 
 /**
  * What each role has to tell us beyond name, email and password.
@@ -169,9 +170,11 @@ export default function Register() {
       {/* ---------------- who this portal is for ---------------- */}
       <section className="relative flex flex-col justify-between overflow-hidden bg-ink px-7 py-10 text-white sm:px-12 lg:py-14">
         <Link to="/login" className="flex w-fit items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand font-display text-base font-bold">
-            JU
-          </span>
+          <img
+            src={logoImg}
+            alt="JharUdyam Logo"
+            className="h-10 w-10 shrink-0 rounded-md object-contain bg-white/10 p-0.5"
+          />
           <div>
             <p className="font-display text-[0.95rem] font-semibold leading-tight">JharUdyam</p>
             <p className="font-mono text-2xs uppercase tracking-[0.14em] text-white/45">

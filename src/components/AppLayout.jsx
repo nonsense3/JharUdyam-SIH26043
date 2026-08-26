@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { roleMeta } from '../lib/constants'
 import { IconGrid, IconList, IconBell, IconUser, IconLogout, IconHand, roleIcon } from './Icons'
+import logoImg from '../assets/logo.jpeg'
 
 /** Sidebar entries per role. `to` values are relative to the role's home path. */
 function navFor(role, home) {
@@ -70,9 +71,11 @@ export default function AppLayout({ children }) {
     <div className="flex h-full flex-col bg-ink text-white">
       {/* brand */}
       <Link to={home} className="flex items-center gap-3 px-5 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand font-display text-base font-bold">
-          JU
-        </span>
+        <img
+          src={logoImg}
+          alt="JharUdyam Logo"
+          className="h-9 w-9 shrink-0 rounded-md object-contain bg-white/10 p-0.5"
+        />
         <span className="min-w-0">
           <span className="block font-display text-[0.95rem] font-semibold leading-tight tracking-tight">
             JharUdyam
@@ -164,7 +167,10 @@ export default function AppLayout({ children }) {
           <button type="button" onClick={() => setDrawerOpen(true)} className="btn-outline btn-sm">
             Menu
           </button>
-          <span className="font-display text-sm font-semibold">JharUdyam</span>
+          <div className="flex items-center gap-2">
+            <img src={logoImg} alt="JharUdyam" className="h-6 w-6 rounded object-contain" />
+            <span className="font-display text-sm font-semibold">JharUdyam</span>
+          </div>
           <span className={`chip ${meta ? 'border-line bg-paper text-ash' : ''}`}>
             {meta?.label ?? ''}
           </span>

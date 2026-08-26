@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, ErrorNote } from '../components/ui'
 import { IconLandmark, IconCap, IconFactory } from '../components/Icons'
+import logoImg from '../assets/logo.jpeg'
 
 /** Emails created by supabase/setup_users.sql — one tap to fill the field. */
 const DEMO_LOGINS = [
@@ -55,9 +56,11 @@ export default function Login() {
       {/* ---------------- the thesis: the chain of custody ---------------- */}
       <section className="relative flex flex-col justify-between overflow-hidden bg-ink px-7 py-10 text-white sm:px-12 lg:py-14">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand font-display text-base font-bold">
-            JU
-          </span>
+          <img
+            src={logoImg}
+            alt="JharUdyam Logo"
+            className="h-10 w-10 shrink-0 rounded-md object-contain bg-white/10 p-0.5"
+          />
           <div>
             <p className="font-display text-[0.95rem] font-semibold leading-tight">JharUdyam</p>
             <p className="font-mono text-2xs uppercase tracking-[0.14em] text-white/45">
