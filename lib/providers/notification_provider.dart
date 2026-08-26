@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jharudyam_citizen/services/supabase_service.dart';
 import 'package:jharudyam_citizen/services/device_service.dart';
@@ -27,38 +28,40 @@ class NotificationProvider extends ChangeNotifier {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   final List<NotificationItem> _notifications = [];
   String? _deviceId;
+  String? _fcmToken;
   int _notificationIdCounter = 0;
   bool _initialized = false;
 
   // Polling state
   Timer? _pollTimer;
-  // Track known problem statuses to detect changes
   final Map<String, String> _knownStatuses = {};
   bool _firstPoll = true;
 
-  // Realtime (bonus layer, may or may not work)
+  // Realtime channel
   RealtimeChannel? _channel;
 
   List<NotificationItem> get notifications => List.unmodifiable(_notifications);
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
+  String? get fcmToken => _fcmToken;
 
-  /// Initialize the notification system
+  /// Initialize the notification system (Local, FCM, Realtime, Polling)
   Future<void> initialize() async {
     if (_initialized) return;
     _deviceId = await DeviceService.getDeviceId();
     await _initLocalNotifications();
+    await _initFirebaseMessaging();
 
-    // Do first poll silently (seed known statuses without notifying)
+    // Seed database state silently for polling
     await _seedInitialState();
 
-    // Start polling every 30 seconds
+    // Start polling every 30s as a reliable fallback
     _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollForChanges());
 
-    // Also try Realtime as a bonus (instant delivery if it works)
+    // Subscribe to Supabase Realtime for instant updates
     _subscribeToRealtime();
 
     _initialized = true;
-    debugPrint('[NotificationProvider] Initialized. Device ID: $_deviceId');
+    debugPrint('[NotificationProvider] Initialized. Device ID: $_deviceId, FCM: $_fcmToken');
   }
 
   Future<void> _initLocalNotifications() async {
@@ -74,7 +77,6 @@ class NotificationProvider extends ChangeNotifier {
     );
     await _notificationsPlugin.initialize(initSettings);
 
-    // Explicitly create notification channel for Android 8+
     final androidPlugin = _notificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
@@ -88,15 +90,60 @@ class NotificationProvider extends ChangeNotifier {
         enableLights: true,
       );
       await androidPlugin.createNotificationChannel(channel);
-
-      // Request Android 13+ notification permission
-      final granted = await androidPlugin.requestNotificationsPermission();
-      debugPrint('[NotificationProvider] Notification permission granted: $granted');
+      await androidPlugin.requestNotificationsPermission();
     }
   }
 
-  /// Seed initial state: load all current problems and their statuses
-  /// so the first real poll only detects NEW changes.
+  Future<void> _initFirebaseMessaging() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+
+      // Request notification permission
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+      debugPrint('[FCM] User granted permission: ${settings.authorizationStatus}');
+
+      // Get FCM device registration token
+      _fcmToken = await messaging.getToken();
+      debugPrint('[FCM] Token: $_fcmToken');
+
+      // Subscribe to global civic topics
+      await messaging.subscribeToTopic('all_problems');
+      await messaging.subscribeToTopic('civic_updates');
+      debugPrint('[FCM] Subscribed to topics: all_problems, civic_updates');
+
+      // Handle foreground FCM messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('[FCM Foreground] Got message: ${message.messageId}');
+        final title = message.notification?.title ?? message.data['title'] ?? 'JharUdyam Alert';
+        final body = message.notification?.body ?? message.data['body'] ?? 'You have a new civic update.';
+
+        _addNotification(
+          title: title,
+          body: body,
+          type: message.data['type'] ?? 'status_change',
+        );
+      });
+
+      // Handle notification taps when app opened from background
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('[FCM OpenedApp] Message clicked: ${message.messageId}');
+      });
+
+      // Handle token refreshes
+      messaging.onTokenRefresh.listen((newToken) {
+        _fcmToken = newToken;
+        debugPrint('[FCM] Token refreshed: $newToken');
+      });
+    } catch (e) {
+      debugPrint('[FCM] Setup error: $e');
+    }
+  }
+
   Future<void> _seedInitialState() async {
     try {
       final response = await SupabaseService.client
@@ -114,14 +161,13 @@ class NotificationProvider extends ChangeNotifier {
       _firstPoll = false;
       debugPrint('[NotificationProvider] Seeded ${_knownStatuses.length} problems.');
     } catch (e) {
-      debugPrint('[NotificationProvider] Seed failed: $e');
+      debugPrint('[NotificationProvider] Seed error: $e');
       _firstPoll = false;
     }
   }
 
-  /// Poll for new problems and status changes
   Future<void> _pollForChanges() async {
-    if (_firstPoll) return; // Wait for seed to complete
+    if (_firstPoll) return;
     try {
       final response = await SupabaseService.client
           .from('problems')
@@ -138,9 +184,7 @@ class NotificationProvider extends ChangeNotifier {
         currentIds.add(id);
 
         if (!_knownStatuses.containsKey(id)) {
-          // --- NEW PROBLEM ---
-          debugPrint('[NotificationProvider] Poll: new problem detected: $id');
-          // Don't notify for own reports
+          // New problem
           if (reporterId != _deviceId) {
             final title = row['title']?.toString() ?? 'New Report';
             final category = row['category']?.toString() ?? '';
@@ -154,10 +198,7 @@ class NotificationProvider extends ChangeNotifier {
           }
           _knownStatuses[id] = status;
         } else if (_knownStatuses[id] != status) {
-          // --- STATUS CHANGED ---
-          final oldStatus = _knownStatuses[id]!;
-          debugPrint('[NotificationProvider] Poll: status change $oldStatus → $status for $id');
-
+          // Status changed
           final title = row['title']?.toString() ?? 'Report Update';
           final ticketNo = row['ticket_no']?.toString() ?? '';
           final statusLabel = _formatStatus(status);
@@ -179,35 +220,11 @@ class NotificationProvider extends ChangeNotifier {
         }
       }
 
-      // Clean up deleted problems from known list
       _knownStatuses.removeWhere((id, _) => !currentIds.contains(id));
-
     } catch (e) {
       debugPrint('[NotificationProvider] Poll error: $e');
     }
   }
-
-  void _addNotification({required String title, required String body, required String type}) {
-    // Avoid duplicate notifications (same body within last 60 seconds)
-    final isDuplicate = _notifications.any((n) =>
-        n.body == body &&
-        DateTime.now().difference(n.timestamp).inSeconds < 60);
-    if (isDuplicate) return;
-
-    final item = NotificationItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: title,
-      body: body,
-      timestamp: DateTime.now(),
-      type: type,
-    );
-
-    _notifications.insert(0, item);
-    _showSystemNotification(title, body);
-    notifyListeners();
-  }
-
-  // ─── Realtime (bonus layer) ───
 
   void _subscribeToRealtime() {
     try {
@@ -223,13 +240,12 @@ class NotificationProvider extends ChangeNotifier {
             schema: 'public',
             table: 'problems',
             callback: (payload) {
-              debugPrint('[NotificationProvider] Realtime INSERT received');
               final record = payload.newRecord;
               final reporterId = record['reporter_id']?.toString() ?? '';
               if (reporterId == _deviceId) return;
 
               final id = record['id']?.toString() ?? '';
-              if (_knownStatuses.containsKey(id)) return; // Already handled by poll
+              if (_knownStatuses.containsKey(id)) return;
 
               final title = record['title']?.toString() ?? 'New Report';
               final category = record['category']?.toString() ?? '';
@@ -249,12 +265,11 @@ class NotificationProvider extends ChangeNotifier {
             schema: 'public',
             table: 'problems',
             callback: (payload) {
-              debugPrint('[NotificationProvider] Realtime UPDATE received');
               final record = payload.newRecord;
               final id = record['id']?.toString() ?? '';
               final newStatus = record['status']?.toString() ?? '';
 
-              if (_knownStatuses[id] == newStatus) return; // Already handled
+              if (_knownStatuses[id] == newStatus) return;
 
               final title = record['title']?.toString() ?? 'Report Update';
               final ticketNo = record['ticket_no']?.toString() ?? '';
@@ -276,30 +291,29 @@ class NotificationProvider extends ChangeNotifier {
               );
             },
           )
-          .subscribe((status, [error]) {
-            debugPrint('[NotificationProvider] Realtime status: $status, error: $error');
-          });
+          .subscribe();
     } catch (e) {
-      debugPrint('[NotificationProvider] Realtime setup failed: $e');
+      debugPrint('[NotificationProvider] Realtime setup error: $e');
     }
   }
 
-  // ─── Helpers ───
+  void _addNotification({required String title, required String body, required String type}) {
+    final isDuplicate = _notifications.any((n) =>
+        n.body == body &&
+        DateTime.now().difference(n.timestamp).inSeconds < 60);
+    if (isDuplicate) return;
 
-  String _formatStatus(String status) {
-    switch (status) {
-      case 'submitted': return 'Submitted';
-      case 'under_review': return 'Under Review';
-      case 'government_handling': return 'Accepted';
-      case 'in_progress': return 'In Progress';
-      case 'resolved': return 'Resolved';
-      case 'released': return 'Released';
-      case 'interest_expressed': return 'Interest Expressed';
-      case 'rejected': return 'Rejected';
-      default:
-        final label = status.replaceAll('_', ' ');
-        return label.isNotEmpty ? '${label[0].toUpperCase()}${label.substring(1)}' : status;
-    }
+    final item = NotificationItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: title,
+      body: body,
+      timestamp: DateTime.now(),
+      type: type,
+    );
+
+    _notifications.insert(0, item);
+    _showSystemNotification(title, body);
+    notifyListeners();
   }
 
   Future<void> _showSystemNotification(String title, String body) async {
@@ -325,18 +339,20 @@ class NotificationProvider extends ChangeNotifier {
     debugPrint('[NotificationProvider] System notification shown: $title — $body');
   }
 
-  /// Fire a test notification to verify system sound & banner
-  Future<void> testNotification() async {
-    final item = NotificationItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: 'JharUdyam Test Alert',
-      body: 'Notifications and system sound are working correctly!',
-      timestamp: DateTime.now(),
-      type: 'status_change',
-    );
-    _notifications.insert(0, item);
-    await _showSystemNotification(item.title, item.body);
-    notifyListeners();
+  String _formatStatus(String status) {
+    switch (status) {
+      case 'submitted': return 'Submitted';
+      case 'under_review': return 'Under Review';
+      case 'government_handling': return 'Accepted';
+      case 'in_progress': return 'In Progress';
+      case 'resolved': return 'Resolved';
+      case 'released': return 'Released';
+      case 'interest_expressed': return 'Interest Expressed';
+      case 'rejected': return 'Rejected';
+      default:
+        final label = status.replaceAll('_', ' ');
+        return label.isNotEmpty ? '${label[0].toUpperCase()}${label.substring(1)}' : status;
+    }
   }
 
   void markAllRead() {
@@ -362,4 +378,3 @@ class NotificationProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

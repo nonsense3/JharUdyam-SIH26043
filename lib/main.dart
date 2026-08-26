@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jharudyam_citizen/constants/app_constants.dart';
 import 'package:jharudyam_citizen/constants/app_theme.dart';
@@ -9,8 +11,23 @@ import 'package:jharudyam_citizen/providers/notification_provider.dart';
 import 'package:jharudyam_citizen/services/device_service.dart';
 import 'package:jharudyam_citizen/screens/main_shell.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('[FCM Background] Message received: ${message.messageId}');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    debugPrint('[Firebase] Initialized successfully');
+  } catch (e) {
+    debugPrint('[Firebase] Initialization error: $e');
+  }
 
   // Initialize Supabase
   await Supabase.initialize(
