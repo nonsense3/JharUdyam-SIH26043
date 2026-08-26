@@ -75,12 +75,18 @@ export async function decideProblem(id, decision, note, userId) {
           released_to: 'none',
           released_at: null,
           released_by: null,
+          rejected_at: null,
+          rejection_reason: null,
+          rejected_by: null,
         }
       : {
           status: 'released',
           released_to: decision,
           released_at: new Date().toISOString(),
           released_by: userId ?? null,
+          rejected_at: null,
+          rejection_reason: null,
+          rejected_by: null,
         }
 
   if (note !== undefined) patch.government_note = note || null
@@ -116,9 +122,18 @@ export async function rejectProblem(id, reason, userId) {
 
 /** Used for the two later lifecycle steps: 'in_progress' and 'resolved'. */
 export async function setProblemStatus(id, status) {
+  const patch = { status }
+  if (status !== 'rejected') {
+    patch.rejected_at = null
+    patch.rejection_reason = null
+    patch.rejected_by = null
+  }
+  if (status !== 'resolved') {
+    patch.resolved_at = null
+  }
   const { data, error } = await supabase
     .from('problems')
-    .update({ status })
+    .update(patch)
     .eq('id', id)
     .select(PROBLEM_FIELDS)
     .maybeSingle()

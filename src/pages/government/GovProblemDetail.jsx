@@ -113,11 +113,24 @@ export default function GovProblemDetail() {
 
   async function submitDecision() {
     if (!choice || !problem) return
+    if (revising && !note.trim()) {
+      setSaveError('Please provide a reason or note explaining why the decision is being changed.')
+      return
+    }
     setSaving(true)
     setSaveError(null)
     try {
       const updated = await decideProblem(problem.id, choice, note, user?.id)
-      problemQuery.setData(updated ?? { ...problem })
+      problemQuery.setData(
+        updated ?? {
+          ...problem,
+          status: choice === 'internal' ? 'government_handling' : 'released',
+          released_to: choice === 'internal' ? 'none' : choice,
+          government_note: note,
+          rejected_at: null,
+          rejection_reason: null,
+        }
+      )
       setChoice(null)
       setRevising(false)
       setRejecting(false)
@@ -185,8 +198,7 @@ export default function GovProblemDetail() {
   }
 
   const awaiting = AWAITING.includes(problem.status)
-  const decided = !awaiting
-  const showChoices = awaiting || revising
+  const showChoices = (awaiting || revising) && !rejecting
   const released = ['released', 'interest_expressed', 'in_progress'].includes(problem.status)
 
   return (
@@ -199,53 +211,59 @@ export default function GovProblemDetail() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <PriorityChip value={problem.priority} />
+            <CategoryChip value={problem.category} />
             <StatusChip value={problem.status} />
+            {problem.released_to && problem.released_to !== 'none' ? (
+              <ScopeChip value={problem.released_to} />
+            ) : null}
           </div>
         }
       />
 
-      <div className="card mb-6 px-5 py-4">
-        <CustodyTrack status={problem.status} />
-      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+        {/* ------------------------------ left: the evidence ------------------------------ */}
+        <div className="space-y-6">
+          <CustodyTrack status={problem.status} />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        {/* ------------------------------ left: the report ------------------------------ */}
-        <div className="space-y-5">
           <Panel title="Citizen evidence" subtitle="Photograph submitted from the mobile app">
-            <ProblemImage src={problem.image_url} alt={problem.title} />
-            <div className="mt-4 flex flex-wrap gap-2">
-              <CategoryChip value={problem.category} />
-              <ScopeChip value={problem.released_to} />
-            </div>
+            <ProblemImage
+              src={problem.image_url}
+              alt={problem.title || 'Report photograph'}
+              className="max-h-[440px] w-full"
+            />
           </Panel>
 
           <Panel title="What was reported">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-ink">
-              {problem.description || 'No description was generated for this report.'}
+            <p className="text-sm leading-relaxed text-ink">
+              {problem.description || 'No description was provided.'}
             </p>
+
             <div className="mt-5 border-t border-line pt-4">
-              <p className="eyebrow mb-2">Location</p>
-              <LocationLine
-                address={problem.address}
-                latitude={problem.latitude}
-                longitude={problem.longitude}
-              />
+              <p className="eyebrow">Location</p>
+              <div className="mt-1.5">
+                <LocationLine
+                  address={problem.address}
+                  lat={problem.latitude}
+                  lng={problem.longitude}
+                />
+              </div>
             </div>
           </Panel>
 
-          <Panel title="Interest from partners" subtitle="Organisations that asked to work on this" bodyClass="">
-            {interestsQuery.loading ? (
-              <LoadingBlock label="Checking interest" />
-            ) : interests.length ? (
-              <ul>
+          <Panel
+            title="Interest from partners"
+            subtitle="Organisations that asked to work on this"
+            badge={interests.length || undefined}
+          >
+            {interests.length ? (
+              <ul className="divide-y divide-line">
                 {interests.map((it) => (
-                  <li
-                    key={it.id}
-                    className="flex items-start justify-between gap-4 border-b border-line px-5 py-3.5 last:border-b-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-ink">{it.org_name}</p>
-                      <p className="mt-0.5 font-mono text-2xs uppercase tracking-[0.1em] text-mute">
+                  <li key={it.id} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <div>
+                      <p className="text-sm font-medium text-ink">
+                        {it.org_name || it.profile?.full_name || 'An organisation'}
+                      </p>
+                      <p className="text-xs text-ash">
                         {it.org_type} · {formatDateTime(it.created_at)}
                       </p>
                       {it.note ? <p className="mt-1.5 text-sm text-ash">{it.note}</p> : null}
@@ -270,19 +288,21 @@ export default function GovProblemDetail() {
             title={
               rejecting
                 ? 'Reject report'
+                : showChoices
+                ? revising
+                  ? 'Change decision'
+                  : 'Your decision'
                 : problem.status === 'rejected'
                 ? 'Report rejected'
-                : showChoices
-                ? 'Your decision'
                 : 'Decision on record'
             }
             subtitle={
               rejecting
                 ? 'State the reason for rejecting this citizen submission.'
-                : problem.status === 'rejected'
-                ? undefined
                 : showChoices
-                ? 'Choose one. This is what makes a problem visible to partners.'
+                ? revising
+                  ? 'Select the new path and explain why the decision was changed.'
+                  : 'Choose one. This is what makes a problem visible to partners.'
                 : undefined
             }
           >
@@ -352,38 +372,6 @@ export default function GovProblemDetail() {
                   </button>
                 </div>
               </div>
-            ) : problem.status === 'rejected' ? (
-              <div className="space-y-4">
-                <div className="rounded-md border border-crit/30 bg-crit/5 p-4">
-                  <p className="text-2xs font-mono uppercase tracking-[0.1em] text-crit font-semibold">
-                    Rejection Reason
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-ink">
-                    {problem.rejection_reason || 'Report rejected by department.'}
-                  </p>
-                  <p className="mt-2 text-2xs text-mute font-mono">
-                    Rejected on {problem.rejected_at ? formatDateTime(problem.rejected_at) : formatDateTime(problem.updated_at)}
-                  </p>
-                </div>
-
-                <p className="rounded-md border border-line bg-paper px-3 py-2 text-xs text-ash leading-relaxed">
-                  ⚠️ This report is rejected and will be permanently deleted from the database 1 hour after rejection.
-                </p>
-
-                <ErrorNote>{saveError}</ErrorNote>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRevising(true)
-                    setChoice(null)
-                    setSaveError(null)
-                  }}
-                  className="btn-outline w-full text-xs"
-                >
-                  Reconsider / Change decision
-                </button>
-              </div>
             ) : showChoices ? (
               <>
                 <div className="space-y-2">
@@ -423,14 +411,26 @@ export default function GovProblemDetail() {
 
                 <div className="mt-4">
                   <label htmlFor="note" className="field-label">
-                    Note for partners <span className="normal-case tracking-normal">(optional)</span>
+                    {revising ? (
+                      <>
+                        Reason for changing decision / Note <span className="text-crit">*</span>
+                      </>
+                    ) : (
+                      <>
+                        Note for partners <span className="normal-case tracking-normal">(optional)</span>
+                      </>
+                    )}
                   </label>
                   <textarea
                     id="note"
                     rows={3}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="What kind of help would be most useful here?"
+                    placeholder={
+                      revising
+                        ? 'Explain why this decision was revised (required)...'
+                        : 'What kind of help would be most useful here?'
+                    }
                     className="input resize-y"
                   />
                 </div>
@@ -445,7 +445,7 @@ export default function GovProblemDetail() {
                     className="btn-primary flex-1"
                   >
                     {saving ? <Spinner /> : null}
-                    {saving ? 'Saving' : 'Confirm decision'}
+                    {saving ? 'Saving' : revising ? 'Confirm change' : 'Confirm decision'}
                   </button>
                   {revising ? (
                     <button
@@ -453,6 +453,7 @@ export default function GovProblemDetail() {
                       onClick={() => {
                         setRevising(false)
                         setChoice(null)
+                        setSaveError(null)
                       }}
                       className="btn-outline"
                     >
@@ -461,19 +462,54 @@ export default function GovProblemDetail() {
                   ) : null}
                 </div>
 
-                <div className="mt-3 border-t border-line pt-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRejecting(true)
-                      setSaveError(null)
-                    }}
-                    className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
-                  >
-                    Reject this report
-                  </button>
-                </div>
+                {problem.status !== 'rejected' && problem.status !== 'resolved' ? (
+                  <div className="mt-3 border-t border-line pt-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRejecting(true)
+                        setSaveError(null)
+                      }}
+                      className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
+                    >
+                      Reject this report
+                    </button>
+                  </div>
+                ) : null}
               </>
+            ) : problem.status === 'rejected' ? (
+              <div className="space-y-4">
+                <div className="rounded-md border border-crit/30 bg-crit/5 p-4">
+                  <p className="text-2xs font-mono uppercase tracking-[0.1em] text-crit font-semibold">
+                    Rejection Reason
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-ink">
+                    {problem.rejection_reason || 'Report rejected by department.'}
+                  </p>
+                  <p className="mt-2 text-2xs text-mute font-mono">
+                    Rejected on {problem.rejected_at ? formatDateTime(problem.rejected_at) : formatDateTime(problem.updated_at)}
+                  </p>
+                </div>
+
+                <p className="rounded-md border border-line bg-paper px-3 py-2 text-xs text-ash leading-relaxed">
+                  ⚠️ This report is rejected and will be permanently deleted from the database 1 hour after rejection.
+                </p>
+
+                <ErrorNote>{saveError}</ErrorNote>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRevising(true)
+                    setChoice(null)
+                    setNote('')
+                    setSaveError(null)
+                  }}
+                  className="btn-primary w-full text-xs"
+                >
+                  Reconsider / Change decision
+                </button>
+              </div>
             ) : (
               <>
                 <p className="text-sm text-ink">{statusMeta(problem.status).description}</p>
@@ -525,21 +561,25 @@ export default function GovProblemDetail() {
                     onClick={() => {
                       setRevising(true)
                       setChoice(null)
+                      setNote('')
+                      setSaveError(null)
                     }}
                     className="btn-ghost w-full"
                   >
                     Change the decision
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRejecting(true)
-                      setSaveError(null)
-                    }}
-                    className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
-                  >
-                    Reject report
-                  </button>
+                  {problem.status !== 'resolved' ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRejecting(true)
+                        setSaveError(null)
+                      }}
+                      className="btn-ghost text-crit w-full text-xs hover:bg-crit/5"
+                    >
+                      Reject report
+                    </button>
+                  ) : null}
                 </div>
               </>
             )}
