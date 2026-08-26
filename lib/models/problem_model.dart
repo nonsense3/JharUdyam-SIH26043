@@ -58,7 +58,7 @@ class ProblemModel {
       reporterName: json['reporter_name'] ?? 'Citizen report · mobile app',
       status: json['status'] ?? 'submitted',
       releasedTo: json['released_to']?.toString(),
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'])?.toLocal() : null,
     );
   }
 
@@ -77,15 +77,17 @@ class ProblemModel {
       'longitude': longitude,
       'reporter_id': reporterId,
       'reporter_name': reporterName,
+      'created_at': (createdAt ?? DateTime.now()).toUtc().toIso8601String(),
     };
   }
 
   String get relativeTime {
     if (createdAt == null) return 'Unknown';
+    final localTime = createdAt!.toLocal();
     final now = DateTime.now();
-    final difference = now.difference(createdAt!);
+    final difference = now.difference(localTime);
 
-    if (difference.inSeconds < 60) {
+    if (difference.isNegative || difference.inSeconds < 60) {
       return 'just now';
     } else if (difference.inMinutes < 60) {
       return '${difference.inMinutes}m ago';
@@ -98,8 +100,8 @@ class ProblemModel {
         'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ];
-      final month = months[createdAt!.month - 1];
-      return '$month ${createdAt!.day}';
+      final month = months[localTime.month - 1];
+      return '$month ${localTime.day}';
     }
   }
 

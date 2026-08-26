@@ -185,7 +185,7 @@ class ProblemDetailScreen extends StatelessWidget {
 
   Widget _buildMetadataCard() {
     final formattedDate = problem.createdAt != null
-        ? DateFormat('MMM dd, yyyy · hh:mm a').format(problem.createdAt!)
+        ? DateFormat('MMM dd, yyyy · hh:mm a').format(problem.createdAt!.toLocal())
         : 'Unknown';
 
     return Card(
