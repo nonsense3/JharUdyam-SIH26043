@@ -36,10 +36,10 @@
 | :--- | :--- | :--- |
 | **Ankit Dey** | **Team Leader** | System Architecture, Full-Stack Integration & Project Management |
 | **Sanchari Ganguly** | Core Developer | Web Command Center, UI/UX Design & Frontend Engineering |
+| **Gaurab Paul** | Core Developer | Research, API Integration, Quality Assurance & Documentation |
 | **Sandhya Poddar** | Core Developer | Database Architecture, Supabase PostgreSQL & RLS Security |
 | **Farhan Naser** | Core Developer | Mobile App Development (Flutter), Gemini Vision AI & Push Notifications |
 | **Debojyoti Dey** | Core Developer | Cloud Infrastructure, Edge Functions, Automation & Cron Engines |
-| **Gaurav Paul** | Core Developer | Research, API Integration, Quality Assurance & Documentation |
 
 ---
 
