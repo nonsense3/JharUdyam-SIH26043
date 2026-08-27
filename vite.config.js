@@ -6,5 +6,13 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    fs: {
+      // Explicitly block dev server access to all env files
+      deny: ['.env', '.env.*', '*.config.js'],
+    },
+  },
+  build: {
+    // Disable source maps in production so raw files/sources are not visible in DevTools
+    sourcemap: false,
   },
 })

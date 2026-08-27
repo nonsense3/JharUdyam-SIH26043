@@ -23,6 +23,7 @@ import CollabInterests from './pages/collab/CollabInterests'
 
 /** Sidebar + page frame. Child routes render into the Outlet. */
 function PortalShell({ allow }) {
+  if (!isSupabaseConfigured) return <SetupNeeded />
   return (
     <ProtectedRoute allow={allow}>
       <AppLayout>
@@ -33,16 +34,18 @@ function PortalShell({ allow }) {
 }
 
 export default function App() {
-  // No Supabase keys in .env yet — show the setup instructions instead of a
-  // blank screen and a console error.
-  if (!isSupabaseConfigured) return <SetupNeeded />
-
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/login"
+          element={!isSupabaseConfigured ? <SetupNeeded /> : <Login />}
+        />
+        <Route
+          path="/register"
+          element={!isSupabaseConfigured ? <SetupNeeded /> : <Register />}
+        />
 
         {/* ------------------------------- government ------------------------------- */}
         <Route path="/government" element={<PortalShell allow={['government']} />}>

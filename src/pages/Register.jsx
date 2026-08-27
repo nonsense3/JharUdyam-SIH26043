@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, ErrorNote } from '../components/ui'
-import { DEPARTMENTS } from '../lib/constants'
+import { DEPARTMENTS, roleMeta } from '../lib/constants'
 import { IconLandmark, IconCap, IconFactory, IconCheck } from '../components/Icons'
 import logoImg from '../assets/logo.jpeg'
 
@@ -57,7 +57,7 @@ const ROLE_KEYS = ['government', 'university', 'industry']
 const MIN_PASSWORD = 8
 
 export default function Register() {
-  const { session, loading, signUp } = useAuth()
+  const { session, role: userRole, loading, signUp } = useAuth()
 
   const [role, setRole] = useState('government')
   const [fullName, setFullName] = useState('')
@@ -86,7 +86,8 @@ export default function Register() {
         </div>
       )
     }
-    return <Navigate to="/" replace />
+    const home = roleMeta(userRole)?.home ?? '/government'
+    return <Navigate to={home} replace />
   }
 
   function validate() {

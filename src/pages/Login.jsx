@@ -21,7 +21,7 @@ const CHAIN = [
 ]
 
 export default function Login() {
-  const { session, loading, signIn } = useAuth()
+  const { session, role, loading, signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
