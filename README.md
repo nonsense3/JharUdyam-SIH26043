@@ -318,8 +318,8 @@ select cron.schedule(
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nonsense3/SIH26043-crowdsource.git
-   cd SIH26043-crowdsource/App
+   git clone https://github.com/nonsense3/JharUdyam-SIH26043.git
+   cd JharUdyam-SIH26043
    ```
 
 2. **Install Flutter dependencies:**
@@ -341,7 +341,7 @@ select cron.schedule(
 
 1. **Navigate to the web portal directory:**
    ```bash
-   cd SIH26043-crowdsource/Web
+   cd JharUdyam-SIH26043/Web
    ```
 
 2. **Install dependencies:**
