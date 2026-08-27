@@ -51,3 +51,11 @@ app.*.map.json
 **/android/app/debug
 **/android/app/profile
 **/android/app/release
+
+# Firebase / GCP credentials & configurations
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+firebase_options.dart
+**/firebase_options.dart
