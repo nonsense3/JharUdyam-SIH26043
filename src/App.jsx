@@ -4,7 +4,6 @@ import { isSupabaseConfigured } from './lib/supabase'
 import { ProtectedRoute, RoleRedirect } from './components/Gate'
 import AppLayout from './components/AppLayout'
 
-import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import SetupNeeded from './pages/SetupNeeded'
@@ -37,7 +36,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route
           path="/login"
           element={!isSupabaseConfigured ? <SetupNeeded /> : <Login />}
