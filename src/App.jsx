@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from './lib/supabase'
 import { ProtectedRoute, RoleRedirect } from './components/Gate'
 import AppLayout from './components/AppLayout'
 
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import SetupNeeded from './pages/SetupNeeded'
@@ -39,9 +40,9 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<RoleRedirect />} />
 
         {/* ------------------------------- government ------------------------------- */}
         <Route path="/government" element={<PortalShell allow={['government']} />}>

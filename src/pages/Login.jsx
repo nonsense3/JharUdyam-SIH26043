@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, ErrorNote } from '../components/ui'
 import { IconLandmark, IconCap, IconFactory } from '../components/Icons'
+import { roleMeta } from '../lib/constants'
 import logoImg from '../assets/logo.jpeg'
 
 /** Emails created by supabase/setup_users.sql — one tap to fill the field. */
@@ -30,7 +31,8 @@ export default function Login() {
   // belong. Redirecting straight to the role's dashboard from here would loop
   // forever for an account that has no dashboard (e.g. a citizen login).
   if (session && !loading) {
-    return <Navigate to="/" replace />
+    const home = roleMeta(role)?.home ?? '/government'
+    return <Navigate to={home} replace />
   }
 
   async function onSubmit(e) {
