@@ -10,7 +10,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B.svg?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![React 18](https://img.shields.io/badge/React-18-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2015-3ECF8E.svg?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![Gemini AI](https://img.shields.io/badge/Google%20Gemini-2.0%20Flash-8E75B2.svg?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![Gemini AI](https://img.shields.io/badge/Google%20Gemini-3.7%20Flash-8E75B2.svg?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 [![Firebase](https://img.shields.io/badge/Firebase-FCM%20v1-FFCA28.svg?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 
 **"Together for a better Jharkhand · Connect · Collaborate · Solve · Create Impact"**
@@ -54,7 +54,7 @@ Traditional civic grievance portals and municipal management systems suffer from
 ### 💡 The JharUdyam Solution
 **JharUdyam** transforms societal problem resolution into an automated, transparent, and collaborative ecosystem:
 - **Zero-Login Mobile Reporting:** Citizens point, snap a photo, and submit in seconds with zero authentication barrier.
-- **Multimodal AI Vision Triage:** Google Gemini 2.0 Flash instantly analyzes photographic evidence, formulates structured titles/descriptions, calculates safety risk priority (`critical`, `high`, `medium`, `low`), and auto-routes to the exact government department.
+- **Multimodal AI Vision Triage:** Google Gemini 3.7 Flash instantly analyzes photographic evidence, formulates structured titles/descriptions, calculates safety risk priority (`critical`, `high`, `medium`, `low`), and auto-routes to the exact government department.
 - **Multi-Stakeholder Web Command Center:** Department officers manage in-house municipal resolution or release challenges to universities (academic R&D) and industries (CSR & private enterprise).
 - **Automated Lifecycle & Storage Hygiene:** Database crons prune resolved tickets after 24 hours and rejected tickets after 1 hour, maintaining lean, high-speed infrastructure.
 - **Real-Time Notification & Immutable Custody Trail:** Firebase Cloud Messaging (FCM v1) and Supabase Realtime keep citizens updated with end-to-end transparency.
@@ -67,7 +67,7 @@ Traditional civic grievance portals and municipal management systems suffer from
 flowchart TD
     subgraph MobileApp ["📱 JharUdyam Citizen Mobile App (Flutter)"]
         Cam["📷 Camera / Gallery Evidence"] --> Loc["📍 GPS Auto-Geolocation"]
-        Loc --> AI["🧠 Gemini 2.0 Flash Vision AI Triage"]
+        Loc --> AI["🧠 Gemini 3.7 Flash Vision AI Triage"]
         AI --> Triage["Structured Report<br/>• Title & Description<br/>• Severity Priority<br/>• Department Route"]
         Triage --> Sub["🚀 One-Tap Anonymous Submission"]
     end
@@ -113,11 +113,11 @@ The JharUdyam Citizen mobile application provides a native, zero-friction report
 | Home Feed & Live Tracking | Gemini AI Vision Inspection | Review & GPS Auto-Detect | Real-Time Issue Custody |
 | :---: | :---: | :---: | :---: |
 | <img src="screenshots/home_screen.jpeg" width="220" alt="Home Screen"/> | <img src="screenshots/ai_analysis.jpeg" width="220" alt="AI Analysis"/> | <img src="screenshots/review_submit.jpeg" width="220" alt="Review & Submit"/> | <img src="screenshots/tracking_details.jpeg" width="220" alt="Tracking Details"/> |
-| *Real-time issue feed with active category filters & status badges* | *Gemini 2.0 Flash multi-step automated visual triage* | *Reverse-geocoded GPS address & AI auto-filled parameters* | *Complete lifecycle audit trail with interactive detail modals* |
+| *Real-time issue feed with active category filters & status badges* | *Gemini 3.7 Flash multi-step automated visual triage* | *Reverse-geocoded GPS address & AI auto-filled parameters* | *Complete lifecycle audit trail with interactive detail modals* |
 
 ### Mobile Key Highlights:
 - **Zero-Login Architecture:** Device UUID persistence eliminates mandatory logins while preserving report ownership across sessions.
-- **Multimodal AI Vision Triage:** Uploaded photos are inspected by Google Gemini 2.0 Flash to auto-populate Title, Description, Department, and Priority without user typing.
+- **Multimodal AI Vision Triage:** Uploaded photos are inspected by Google Gemini 3.7 Flash to auto-populate Title, Description, Department, and Priority without user typing.
 - **Interactive Detail Modals:** Clickable metadata chips with full-text inspection and clipboard copy.
 - **Persistent Notifications & Deep Linking:** Push alerts and in-app notifications link directly to the affected ticket.
 - **Sub-Second Native Bootup:** Pre-cached theme and animated scaling logo eliminate startup delay.
@@ -291,7 +291,7 @@ select cron.schedule(
 ├───────────────────┼─────────────────────────────────────────────────────────┤
 │ Mobile App        │ Flutter 3.x, Dart 3.x, Provider, Material 3             │
 │ Web Command Center│ React 18, Vite 5, Tailwind CSS, PostCSS, React Router v6│
-│ AI Vision Engine  │ Google Gemini 2.0 Flash Multimodal Vision API           │
+│ AI Vision Engine  │ Google Gemini 3.7 Flash Multimodal Vision API           │
 │ Backend Database  │ Supabase (PostgreSQL 15), Postgres Sequences & Triggers │
 │ Cloud Storage     │ Supabase Storage (S3-compatible CDN Bucket)             │
 │ Push Notifications│ Firebase Cloud Messaging (FCM v1), Supabase Webhooks    │
