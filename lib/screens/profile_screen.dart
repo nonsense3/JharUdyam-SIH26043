@@ -36,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jhar Udayam', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
+        title: const Text('JharUdyam', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
         backgroundColor: Colors.white,
         elevation: 0.5,
         automaticallyImplyLeading: false,
@@ -103,12 +103,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text('SUPPORT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryColor, letterSpacing: 1)),
             const SizedBox(height: 12),
             _buildMenuCard([
-              _menuItem(Icons.info_outline, 'About Jhar Udayam', () {
+              _menuItem(Icons.info_outline, 'About JharUdyam', () {
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: const Text('About Jhar Udayam', style: TextStyle(fontWeight: FontWeight.w700)),
+                    title: const Text('About JharUdyam', style: TextStyle(fontWeight: FontWeight.w700)),
                     content: const Text('JharUdyam is a smart civic reporting platform for Jharkhand citizens. Report infrastructure issues, track resolutions, and help improve your community.\n\nBuilt for SIH 2026 (Problem ID: SIH26043).', style: TextStyle(height: 1.5)),
                     actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
                   ),

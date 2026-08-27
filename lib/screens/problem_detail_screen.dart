@@ -37,7 +37,7 @@ class ProblemDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jhar Udayam', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
+        title: const Text('JharUdyam', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.primaryColor,
         elevation: 0.5,

@@ -411,7 +411,7 @@ class _AnalyzingViewState extends State<_AnalyzingView>
               ),
               const SizedBox(height: 8),
               Text(
-                'Jhar Udayam is analyzing the image to help describe the problem.',
+                'JharUdyam is analyzing the image to help describe the problem.',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade300,

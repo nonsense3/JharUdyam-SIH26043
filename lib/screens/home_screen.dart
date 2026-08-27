@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Jhar Udayam', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
+            Text('JharUdyam', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.primaryColor)),
             Text('Jharkhand Civic Desk', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.grey)),
           ],
         ),
