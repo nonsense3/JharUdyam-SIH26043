@@ -1,31 +1,333 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>JharUdyam · Societal Challenge Platform</title>
-    <meta
-      name="description"
-      content="Government, university and industry portal for citizen-reported societal challenges."
-    />
-    <link
-      rel="icon"
-      type="image/jpeg"
-      href="/favicon.jpeg"
-    />
-    <link
-      rel="apple-touch-icon"
-      href="/favicon.jpeg"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JharUdyam — Jharkhand Civic Innovation Platform</title>
+  <meta name="description" content="JharUdyam connects citizens with government, universities and industry to transform real-world societal challenges into meaningful solutions. Built for Smart India Hackathon 2026 (SIH26043)." />
+  <meta name="theme-color" content="#15653C" />
+
+  <!-- Social preview -->
+  <meta property="og:title" content="JharUdyam — Jharkhand Civic Innovation Platform" />
+  <meta property="og:description" content="Report problems. Connect solutions. Create impact." />
+  <meta property="og:type" content="website" />
+
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+
+  <!-- Fonts: Hanken Grotesk — clean, warm, highly readable; civic-appropriate -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============================ HEADER / NAV ============================ -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="JharUdyam home">
+        <picture>
+          <source srcset="/assets/logo-emblem.webp" type="image/webp" />
+          <img class="brand-mark" src="/assets/logo-emblem.png" alt="JharUdyam emblem" width="44" height="44" />
+        </picture>
+        <span class="brand-word">Jhar<span class="brand-word-accent">Udyam</span></span>
+      </a>
+
+      <nav class="nav" id="primaryNav" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#stakeholders">Stakeholders</a>
+        <a href="#ai">AI</a>
+        <a href="#sih">SIH 2026</a>
+        <div class="nav-cta">
+          <button class="btn btn-ghost btn-sm js-portal" type="button">Partner Portal</button>
+          <button class="btn btn-primary btn-sm js-app" type="button">Get the App</button>
+        </div>
+      </nav>
+
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="primaryNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <span id="top"></span>
+
+    <!-- ================================ HERO ================================ -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Government of Jharkhand · Smart India Hackathon 2026</p>
+          <h1 id="hero-title" class="hero-title">JharUdyam</h1>
+          <p class="hero-subhead">Jharkhand Civic Innovation Platform</p>
+          <p class="hero-message">Report problems. Connect solutions. Create impact.</p>
+          <p class="hero-desc">
+            JharUdyam connects citizens with government, universities and industry to
+            transform real-world societal challenges into meaningful solutions.
+          </p>
+
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg js-app" type="button">
+              <svg viewBox="0 0 24 24" class="btn-ico" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+              Get the Citizen App
+            </button>
+            <button class="btn btn-secondary btn-lg js-portal" type="button">
+              Open Partner Portal
+              <svg viewBox="0 0 24 24" class="btn-ico" aria-hidden="true"><path d="M7 17 17 7m0 0H8m9 0v9"/></svg>
+            </button>
+          </div>
+
+          <div class="hero-meta">
+            <span><svg viewBox="0 0 24 24" class="meta-ico" aria-hidden="true"><path d="M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Zm3 17h4"/></svg>Android app for citizens</span>
+            <span><svg viewBox="0 0 24 24" class="meta-ico" aria-hidden="true"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M4.5 7h15M4.5 17h15"/></svg>Web portal for partners</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-emblem-glow"></div>
+          <picture>
+            <source srcset="/assets/logo-emblem.webp" type="image/webp" />
+            <img class="hero-emblem" src="/assets/logo-emblem.png" alt="" width="520" height="404" />
+          </picture>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ VISION FLOW ============================ -->
+    <section class="flow" aria-label="The JharUdyam journey">
+      <div class="container">
+        <div class="flow-band">
+          <span class="flow-label">The journey</span>
+          <ol class="flow-chips">
+            <li>Citizen</li>
+            <li>Government</li>
+            <li>University&nbsp;/&nbsp;Industry</li>
+            <li class="flow-chip-end">Solution</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ HOW IT WORKS ============================ -->
+    <section class="section" id="how" aria-labelledby="how-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title" class="section-title">From a single photo to a real solution</h2>
+          <p class="section-lead">Four simple steps move a community problem from the street to the people who can solve it.</p>
+        </div>
+
+        <div class="steps">
+          <article class="card step">
+            <span class="step-num">01</span>
+            <h3 class="step-title">Report</h3>
+            <p>Citizens capture and submit a real-world problem through the mobile application.</p>
+          </article>
+          <article class="card step">
+            <span class="step-num">02</span>
+            <h3 class="step-title">AI Analysis</h3>
+            <p>AI analyzes the submitted evidence, identifies and categorizes the problem, and determines the appropriate government department.</p>
+          </article>
+          <article class="card step">
+            <span class="step-num">03</span>
+            <h3 class="step-title">Government Review</h3>
+            <p>The government reviews submitted problems and can release suitable challenges to universities or industry partners.</p>
+          </article>
+          <article class="card step">
+            <span class="step-num">04</span>
+            <h3 class="step-title">Collaborate &amp; Solve</h3>
+            <p>Universities and industry partners can choose relevant challenges and work toward practical solutions.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================== STAKEHOLDERS =========================== -->
+    <section class="section section-alt" id="stakeholders" aria-labelledby="stake-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">One platform, multiple stakeholders</p>
+          <h2 id="stake-title" class="section-title">Built for everyone who shapes change</h2>
+          <p class="section-lead">A shared platform where each participant plays a distinct, meaningful role.</p>
+        </div>
+
+        <div class="stakeholders">
+          <article class="card stake">
+            <span class="stake-ico" data-tone="green">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3 20c0-3 2.7-5 6-5s6 2 6 5m2 0c0-2.2-1-3.8-2.5-4.6"/></svg>
+            </span>
+            <h3 class="stake-title">Citizens</h3>
+            <p>Report real problems from their communities with images and location.</p>
+          </article>
+
+          <article class="card stake">
+            <span class="stake-ico" data-tone="deep">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 8H3l9-5Zm-6 6v7m4-7v7m4-7v7m4-7v7M4 20h16M3 17h18"/></svg>
+            </span>
+            <h3 class="stake-title">Government</h3>
+            <p>Review, manage and route societal challenges and decide which problems should be opened for collaboration.</p>
+          </article>
+
+          <article class="card stake">
+            <span class="stake-ico" data-tone="fresh">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2 9l10 5 8-4v6m-8-2L4 10.5"/></svg>
+            </span>
+            <h3 class="stake-title">Universities</h3>
+            <p>Discover challenges released by government and contribute academic expertise, students and research capabilities.</p>
+          </article>
+
+          <article class="card stake">
+            <span class="stake-ico" data-tone="orange">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V9l7-4v4l7-4v16H4Zm4-3h2m4 0h2m-8-4h2m4 0h2"/></svg>
+            </span>
+            <h3 class="stake-title">Industry</h3>
+            <p>Explore released challenges and contribute technology, mentorship, prototyping and implementation capabilities.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================ AI ================================ -->
+    <section class="section" id="ai" aria-labelledby="ai-title">
+      <div class="container ai-grid">
+        <div class="ai-copy">
+          <p class="eyebrow">Artificial Intelligence</p>
+          <h2 id="ai-title" class="section-title">AI-Powered Problem Understanding</h2>
+          <p class="section-lead">
+            JharUdyam uses AI to analyze the images and information a citizen submits — turning a
+            quick photo into a clear, structured, routable report.
+          </p>
+          <p class="ai-note">
+            <svg viewBox="0 0 24 24" class="note-ico" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            AI assists — it does not decide. The government remains responsible for reviewing every
+            submitted problem and choosing whether it should be released for collaboration.
+          </p>
+        </div>
+
+        <div class="card ai-list">
+          <h3 class="ai-list-title">What the AI helps with</h3>
+          <ul class="checklist">
+            <li>Identify the visible problem</li>
+            <li>Generate a concise problem description</li>
+            <li>Categorize the challenge</li>
+            <li>Prioritize the challenge</li>
+            <li>Detect duplicate or similar reports</li>
+            <li>Determine the appropriate government department</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ TECHNOLOGY ============================ -->
+    <section class="section section-alt" id="tech" aria-labelledby="tech-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Technology</p>
+          <h2 id="tech-title" class="section-title">Built for a Connected Innovation Ecosystem</h2>
+          <p class="section-lead">A focused, modern stack — nothing more than the platform needs.</p>
+        </div>
+
+        <div class="tech">
+          <article class="card tech-item">
+            <span class="tech-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M4 16v2a2 2 0 0 0 2 2h2m8-16h2a2 2 0 0 1 2 2v2m0 8v2a2 2 0 0 1-2 2h-2M12 9.5A2.5 2.5 0 1 0 12 14.5 2.5 2.5 0 0 0 12 9.5Z"/></svg></span>
+            <h3>AI-powered image analysis</h3>
+          </article>
+          <article class="card tech-item">
+            <span class="tech-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg></span>
+            <h3>Location / GPS-based reporting</h3>
+          </article>
+          <article class="card tech-item">
+            <span class="tech-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1 0-8 5.5 5.5 0 0 1 10.7-1.3A3.75 3.75 0 0 1 17.5 18H7Z"/></svg></span>
+            <h3>Cloud-backed data platform</h3>
+          </article>
+          <article class="card tech-item">
+            <span class="tech-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Zm3 17h4"/></svg></span>
+            <h3>Citizen mobile application</h3>
+          </article>
+          <article class="card tech-item">
+            <span class="tech-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/></svg></span>
+            <h3>Web-based partner portal</h3>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== CTA BAND ============================== -->
+    <section class="section cta-section" aria-labelledby="cta-title">
+      <div class="container">
+        <div class="cta-band">
+          <div class="cta-text">
+            <h2 id="cta-title">Ready to explore JharUdyam?</h2>
+            <p>Download the citizen app to report a problem, or open the partner portal to review and collaborate on released challenges.</p>
+          </div>
+          <div class="cta-actions">
+            <button class="btn btn-on-dark js-app" type="button">Get the Citizen App</button>
+            <button class="btn btn-ghost-light js-portal" type="button">Open Partner Portal</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ SIH CONTEXT ============================ -->
+    <section class="section section-alt sih" id="sih" aria-labelledby="sih-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Recognition</p>
+          <h2 id="sih-title" class="section-title">Built for Smart India Hackathon 2026</h2>
+        </div>
+        <dl class="sih-grid">
+          <div class="card sih-item">
+            <dt>Problem Statement</dt>
+            <dd>SIH26043</dd>
+          </div>
+          <div class="card sih-item">
+            <dt>Theme</dt>
+            <dd>Disaster Management</dd>
+          </div>
+          <div class="card sih-item">
+            <dt>Organization</dt>
+            <dd>Government of Jharkhand</dd>
+          </div>
+          <div class="card sih-item">
+            <dt>Department</dt>
+            <dd>Department of Higher &amp; Technical Education</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <picture>
+          <source srcset="/assets/logo-emblem.webp" type="image/webp" />
+          <img src="/assets/logo-emblem.png" alt="JharUdyam emblem" width="52" height="52" />
+        </picture>
+        <div>
+          <p class="footer-name">JharUdyam</p>
+          <p class="footer-tag">Jharkhand Civic Innovation Platform</p>
+        </div>
+      </div>
+
+      <nav class="footer-links" aria-label="Footer">
+        <button class="link-btn js-app" type="button">Citizen App</button>
+        <span class="dot" aria-hidden="true">|</span>
+        <button class="link-btn js-portal" type="button">Partner Portal</button>
+      </nav>
+    </div>
+    <div class="container footer-base">
+      <p>Smart India Hackathon 2026 · SIH26043</p>
+      <p>Report problems. Connect solutions. Create impact.</p>
+    </div>
+  </footer>
+
+  <!-- Toast for placeholder APK link -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/script.js"></script>
+</body>
 </html>

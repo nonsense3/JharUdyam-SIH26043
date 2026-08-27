@@ -1,29 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    {
-      name: 'serve-landing-at-root',
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (req.url === '/' || req.url === '') {
-            req.url = '/landing.html'
-          }
-          next()
-        })
-      },
-      configurePreviewServer(server) {
-        server.middlewares.use((req, res, next) => {
-          if (req.url === '/' || req.url === '') {
-            req.url = '/landing.html'
-          }
-          next()
-        })
-      },
-    },
-  ],
+  plugins: [react()],
   server: {
     port: 5173,
     open: true,
@@ -33,5 +13,11 @@ export default defineConfig({
   },
   build: {
     sourcemap: false,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        portal: resolve(__dirname, 'portal.html'),
+      },
+    },
   },
 })
