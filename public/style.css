@@ -185,9 +185,9 @@ h1, h2, h3 { color: var(--ink); line-height: 1.12; letter-spacing: -0.02em; font
 .hero-visual { position: relative; display: grid; place-items: center; }
 .hero-emblem { width: min(100%, 480px); height: auto; filter: drop-shadow(0 26px 48px rgba(12,58,42,.22)); position: relative; z-index: 1; }
 .hero-emblem-glow {
-  position: absolute; inset: 8% 6%;
-  background: radial-gradient(circle at 50% 42%, rgba(46,158,91,.22), rgba(46,158,91,0) 62%);
-  filter: blur(6px);
+  position: absolute; inset: 5%;
+  background: radial-gradient(circle at 50% 48%, rgba(46,158,91,.24), rgba(46,158,91,0) 68%);
+  filter: blur(8px);
 }
 
 /* =========================== VISION FLOW ========================== */

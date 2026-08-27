@@ -15,7 +15,7 @@
                        web portal that "Open Partner Portal" opens.
 */
 
-const APP_DOWNLOAD_URL = "https://github.com/nonsense3/JharUdyam/releases/download/GovtJharkhand/JharUdyam.apk";           // TODO: paste the APK download link here
+const APP_DOWNLOAD_URL = "https://github.com/nonsense3/JharUdyam/releases/download/GovtJharkhand/JharUdyam.apk";
 const PORTAL_URL       = "/login";                          // Partner portal login route
 
 /* ===================================================================== */
