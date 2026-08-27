@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+
+  /* Visible keyboard focus everywhere, never a mystery outline */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-paper;
+  }
+
+  ::selection {
+    @apply bg-brand/20;
+  }
+}
+
+@layer components {
+  /* ---------- structure ---------- */
+  .card {
+    @apply rounded-lg border border-line bg-surface shadow-card;
+  }
+
+  .eyebrow {
+    @apply font-mono text-2xs uppercase tracking-[0.14em] text-mute;
+  }
+
+  .field-label {
+    @apply mb-1.5 block font-mono text-2xs uppercase tracking-[0.14em] text-ash;
+  }
+
+  .input {
+    @apply w-full rounded-md border border-line bg-surface px-3 py-2.5 text-sm text-ink
+      placeholder:text-mute focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium
+      transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand-dark;
+  }
+
+  .btn-ink {
+    @apply btn bg-ink text-white hover:bg-ink-soft;
+  }
+
+  .btn-outline {
+    @apply btn border border-line bg-surface text-ink hover:border-ash hover:bg-paper;
+  }
+
+  .btn-ghost {
+    @apply btn text-ash hover:bg-paper hover:text-ink;
+  }
+
+  .btn-sm {
+    @apply px-2.5 py-1.5 text-xs;
+  }
+
+  /* ---------- data chips ---------- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-2xs
+      uppercase tracking-[0.08em];
+  }
+
+  .ticket {
+    @apply font-mono text-2xs tracking-[0.06em] text-ash;
+  }
+
+  /* ---------- table ---------- */
+  .th {
+    @apply border-b border-line px-4 py-2.5 text-left font-mono text-2xs
+      uppercase tracking-[0.12em] text-mute;
+  }
+
+  .td {
+    @apply border-b border-line px-4 py-3 align-top text-sm;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Slim scrollbars inside the sidebar and panels */
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(123, 136, 153, 0.35);
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
