@@ -1,30 +1,8 @@
-/* =====================================================================
-   JharUdyam — landing page behaviour
-   =====================================================================
-
-   ┌───────────────────────────────────────────────────────────────┐
-   │  EDIT THESE TWO LINES TO POINT THE BUTTONS AT YOUR REAL LINKS.  │
-   └───────────────────────────────────────────────────────────────┘
-
-   APP_DOWNLOAD_URL  → the citizen Android app (.apk) download link.
-                       Leave as-is until the APK is published; the
-                       "Get the Citizen App" buttons will show a short
-                       "coming soon" message instead of a broken link.
-
-   PORTAL_URL        → the deployed Government / University / Industry
-                       web portal that "Open Partner Portal" opens.
-*/
-
 const APP_DOWNLOAD_URL = "https://github.com/nonsense3/JharUdyam-SIH26043/releases/download/SIH-26043/JharUdyam.apk";
-const PORTAL_URL       = "/login";                          // Partner portal login route
-
-/* ===================================================================== */
-
+const PORTAL_URL       = "/login";      
 (function () {
   "use strict";
-
   const isPlaceholder = (url) => !url || url.indexOf("YOUR_") === 0;
-
   /* ---- Toast helper (used when a link isn't configured yet) -------- */
   const toastEl = document.getElementById("toast");
   let toastTimer;
@@ -41,7 +19,6 @@ const PORTAL_URL       = "/login";                          // Partner portal lo
       setTimeout(() => { toastEl.hidden = true; }, 300);
     }, 3200);
   }
-
   /* ---- Wire up the two primary actions ----------------------------- */
   function openApp() {
     if (isPlaceholder(APP_DOWNLOAD_URL)) {
@@ -50,14 +27,11 @@ const PORTAL_URL       = "/login";                          // Partner portal lo
     }
     window.location.href = APP_DOWNLOAD_URL;   // direct .apk download
   }
-
   function openPortal() {
     window.location.href = PORTAL_URL;
   }
-
   document.querySelectorAll(".js-app").forEach((el) => el.addEventListener("click", openApp));
   document.querySelectorAll(".js-portal").forEach((el) => el.addEventListener("click", openPortal));
-
   /* ---- Mobile navigation toggle ------------------------------------ */
   const toggle = document.getElementById("navToggle");
   const nav = document.getElementById("primaryNav");
