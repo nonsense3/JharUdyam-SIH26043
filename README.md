@@ -43,6 +43,26 @@
 
 ---
 
+
+## 🔑 Live Portal & Demo Credentials
+
+> 🌐 **Live Web Command Center**: [jharudyam.onrender.com](https://jharudyam.onrender.com)  
+> 📦 **GitHub Repository**: [github.com/nonsense3/JharUdyam-SIH26043](https://github.com/nonsense3/JharUdyam-SIH26043.git)
+
+### 🏢 Pre-Configured Demo Accounts
+
+You can immediately log in to the web command center with any of the pre-seeded stakeholder accounts:
+
+| Stakeholder Role | Demo Email | Password | Department / Organisation Scope |
+| :--- | :--- | :--- | :--- |
+| **🏛️ Government Officer** | `gov@jharudyam.test` | `Portal@123` | *Public Works Department* (Direct Triage, In-House Execution & Release) |
+| **🏭 Industry Representative** | `industry@jharudyam.test` | `Portal@123` | *Tata Steel Foundation* (CSR Adoption & PPP Proposals) |
+| **🎓 University Researcher** | `university@jharudyam.test` | `Portal@123` | *BIT Mesra* (Academic R&D & Hackathon Projects) |
+
+> 💡 **Self-Serve Registration**: You can also create brand-new accounts as **Government**, **University**, or **Industry** directly via the [Registration Portal](https://jharudyam.onrender.com/register). When you register under a specific Department (e.g. *Water Supply & Sanitation, Health, Electricity*), the portal automatically streams and filters problems routed to your chosen department!
+
+
+
 ## 🌟 2. Executive Summary & The Problem
 
 Traditional civic grievance portals and municipal management systems suffer from critical structural bottlenecks:
