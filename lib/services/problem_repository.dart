@@ -1,0 +1,118 @@
+import 'dart:typed_data';
+import 'package:uuid/uuid.dart';
+import 'package:jharudyam_citizen/constants/app_constants.dart';
+import 'package:jharudyam_citizen/models/problem_model.dart';
+import 'package:jharudyam_citizen/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class ProblemRepository {
+  Future<List<ProblemModel>> getProblems({String? category}) async {
+    try {
+      var query = SupabaseService.client
+          .from('problems')
+          .select();
+
+      if (category != null && category != 'All') {
+        query = query.ilike('category', '%$category%');
+      }
+
+      final response = await query.order('created_at', ascending: false);
+      return (response as List).map((e) => ProblemModel.fromJson(e)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch problems: $e');
+    }
+  }
+
+  Future<List<ProblemModel>> getMyReports(String deviceId) async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select()
+          .eq('reporter_id', deviceId)
+          .order('created_at', ascending: false);
+      return (response as List).map((e) => ProblemModel.fromJson(e)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch your reports: $e');
+    }
+  }
+
+  Future<ProblemModel> getProblemById(String id) async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select()
+          .eq('id', id)
+          .single();
+      return ProblemModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to fetch problem: $e');
+    }
+  }
+
+  Future<ProblemModel?> getProblemByTicketNo(String ticketNo) async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select()
+          .eq('ticket_no', ticketNo)
+          .maybeSingle();
+      if (response == null) return null;
+      return ProblemModel.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<({String publicUrl, String path})> uploadImage(Uint8List imageBytes) async {
+    try {
+      final fileName = '$uploadPrefix/${DateTime.now().millisecondsSinceEpoch}_${const Uuid().v4().substring(0, 8)}.jpg';
+
+      await SupabaseService.client.storage
+          .from(storageBucket)
+          .uploadBinary(
+            fileName,
+            imageBytes,
+            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+          );
+
+      final publicUrl = SupabaseService.client.storage
+          .from(storageBucket)
+          .getPublicUrl(fileName);
+
+      return (publicUrl: publicUrl, path: fileName);
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
+
+  Future<ProblemModel> submitProblem(ProblemModel problem) async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .insert(problem.toInsertJson())
+          .select()
+          .single();
+      return ProblemModel.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to submit report: $e');
+    }
+  }
+
+  /// Get list of categories that have at least 1 submitted problem
+  Future<List<String>> getActiveCategories() async {
+    try {
+      final response = await SupabaseService.client
+          .from('problems')
+          .select('category');
+      final categories = (response as List)
+          .map((e) => e['category']?.toString() ?? '')
+          .where((c) => c.isNotEmpty)
+          .toSet()
+          .toList();
+      categories.sort();
+      return categories;
+    } catch (e) {
+      return [];
+    }
+  }
+}
