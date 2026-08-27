@@ -318,8 +318,8 @@ select cron.schedule(
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/nonsense3/JharUdyam.git
-   cd JharUdyam
+   git clone https://github.com/nonsense3/SIH26043-crowdsource.git
+   cd SIH26043-crowdsource/App
    ```
 
 2. **Install Flutter dependencies:**
@@ -328,7 +328,7 @@ select cron.schedule(
    ```
 
 3. **Configure Firebase:**
-   - Place your `google-services.json` in `android/app/google-services.json`.
+   - Place your `google-services.json` in `App/android/app/google-services.json`.
 
 4. **Run on connected device or emulator:**
    ```bash
@@ -341,7 +341,7 @@ select cron.schedule(
 
 1. **Navigate to the web portal directory:**
    ```bash
-   cd web
+   cd SIH26043-crowdsource/Web
    ```
 
 2. **Install dependencies:**
