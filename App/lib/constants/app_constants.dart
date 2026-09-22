@@ -8,6 +8,9 @@ const String geminiApiKey = String.fromEnvironment(
   defaultValue: 'YOUR_GEMINI_API_KEY_HERE',
 );
 
+// App version identifier for backend compatibility
+const String currentAppVersion = '1.1.0';
+
 // Storage bucket
 const String storageBucket = 'problem-images';
 const String uploadPrefix = 'citizen-uploads';
