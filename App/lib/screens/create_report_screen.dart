@@ -275,14 +275,61 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           ),
           const SizedBox(height: 28),
 
+          // Invalid submission warning banner
+          if (provider.isInvalidSubmission)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.orange.shade300, width: 1.2),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.block, color: Colors.orange.shade700, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Invalid Submission Detected',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.orange.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Our AI has determined that this photo does not depict a genuine civic infrastructure problem. Please submit only real civic issues such as potholes, broken streetlights, garbage dumping, etc.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade700,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => provider.submit(),
-              icon: const Icon(Icons.send),
-              label: const Text('Submit Report', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              onPressed: provider.isInvalidSubmission ? null : () => provider.submit(),
+              icon: Icon(provider.isInvalidSubmission ? Icons.block : Icons.send),
+              label: Text(
+                provider.isInvalidSubmission ? 'Submission Blocked' : 'Submit Report',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: provider.isInvalidSubmission ? Colors.grey.shade400 : AppTheme.primaryColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

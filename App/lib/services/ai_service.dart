@@ -18,6 +18,9 @@ class AiAnalysisResult {
     required this.department,
   });
 
+  /// Returns true when the AI has flagged this submission as invalid/spam.
+  bool get isInvalid => category.toLowerCase() == 'invalid submission';
+
   factory AiAnalysisResult.fromJson(Map<String, dynamic> json) {
     return AiAnalysisResult(
       title: json['title'] ?? 'Civic Issue Report',
@@ -47,6 +50,22 @@ Your task is to analyze an uploaded citizen photograph of a public issue or infr
    - "medium": Significant inconvenience or chronic defect, non-functioning streetlights at night, broken footpaths, low-pressure pipe leakages, broken speed breaker.
    - "low": Minor cosmetic damage, faded road paint, minor roadside litter, non-critical signage defect.
 5. Assign a Department strictly from the allowed 8 government departments below. Do NOT invent new departments.
+
+### CRITICAL — INVALID SUBMISSION DETECTION:
+Before classifying any civic issue, you MUST first verify that the photograph genuinely depicts a real-world civic infrastructure problem, environmental hazard, or public safety concern.
+
+If the image is ANY of the following, you MUST flag it as an INVALID SUBMISSION:
+- Selfies, portraits, or photos of people (not depicting a civic issue)
+- Screenshots of apps, websites, chats, memes, or social media
+- Photos of food, animals (pets), personal objects, or indoor household items
+- Random or blurry photos with no identifiable civic issue
+- Blank, black, or white images
+- Text documents, PDFs, or book pages
+- AI-generated or digitally manipulated images
+- Photos of screens, monitors, or TVs
+- Any image that does NOT show a genuine, identifiable public infrastructure defect or civic hazard
+
+When an image is invalid, set the category to exactly "Invalid Submission", set priority to "low", set department to "Public Works", and write a brief title and description explaining why the submission was rejected.
 
 ### ALLOWED DEPARTMENTS (Choose exactly ONE):
 - "Public Works" (Roads, potholes, bridges, flyovers, dividers, footpaths, government buildings)
