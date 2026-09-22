@@ -1,3 +1,5 @@
+import 'package:jharudyam_citizen/constants/app_constants.dart';
+
 class ProblemModel {
   final String? id;
   final String? ticketNo;
@@ -20,6 +22,7 @@ class ProblemModel {
   final DateTime? rejectedAt;
   final DateTime? resolvedAt;
   final DateTime? createdAt;
+  final String? appVersion;
 
   ProblemModel({
     this.id,
@@ -43,6 +46,7 @@ class ProblemModel {
     this.rejectedAt,
     this.resolvedAt,
     this.createdAt,
+    this.appVersion = currentAppVersion,
   });
 
   factory ProblemModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +72,7 @@ class ProblemModel {
       rejectedAt: json['rejected_at'] != null ? DateTime.tryParse(json['rejected_at'])?.toLocal() : null,
       resolvedAt: json['resolved_at'] != null ? DateTime.tryParse(json['resolved_at'])?.toLocal() : null,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'])?.toLocal() : null,
+      appVersion: json['app_version']?.toString(),
     );
   }
 
@@ -87,6 +92,7 @@ class ProblemModel {
       'reporter_id': reporterId,
       'reporter_name': reporterName,
       'created_at': (createdAt ?? DateTime.now()).toUtc().toIso8601String(),
+      'app_version': appVersion ?? currentAppVersion,
     };
   }
 

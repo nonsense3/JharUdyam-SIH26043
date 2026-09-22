@@ -52,6 +52,9 @@ class ReportProvider extends ChangeNotifier {
   String get priority => _priority;
   String get department => _department;
 
+  /// True when the AI has flagged the photo as invalid / not a civic issue.
+  bool get isInvalidSubmission => _aiResult?.isInvalid ?? false;
+
   // Setters for editable fields
   void setTitle(String v) { _title = v; notifyListeners(); }
   void setDescription(String v) { _description = v; notifyListeners(); }
